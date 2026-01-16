@@ -3,6 +3,28 @@
   "ui": "tui",
   "tasks": {
     "build": {
+      "env": [
+        "PORT",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "CORS_ORIGIN",
+        "GOOGLE_GENERATIVE_AI_API_KEY",
+        "DATABASE_URL",
+        "DATABASE_URL_UNPOOLED",
+        "PGHOST",
+        "PGHOST_UNPOOLED",
+        "PGUSER",
+        "PGDATABASE",
+        "PGPASSWORD",
+        "POSTGRES_URL",
+        "POSTGRES_URL_NON_POOLING",
+        "POSTGRES_USER",
+        "POSTGRES_HOST",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_DATABASE",
+        "POSTGRES_URL_NO_SSL",
+        "POSTGRES_PRISMA_URL"
+      ],
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**"]

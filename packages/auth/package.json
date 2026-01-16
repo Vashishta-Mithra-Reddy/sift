@@ -1,0 +1,24 @@
+{
+  "name": "@sift/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@sift/db": "workspace:*",
+    "@sift/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@sift/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

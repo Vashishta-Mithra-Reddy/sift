@@ -15,6 +15,7 @@
     "@sift/auth": "workspace:*",
     "@sift/env": "workspace:*",
     "@tanstack/react-form": "^1.27.3",
+    "@vercel/analytics": "^1.6.1",
     "ai": "^6.0.3",
     "babel-plugin-react-compiler": "^1.0.0",
     "better-auth": "catalog:",

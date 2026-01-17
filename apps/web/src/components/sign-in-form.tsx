@@ -9,6 +9,7 @@ import Loader from "./loader";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import GoogleAuthButton from "./blocks/GoogleAuthButton";
 
 export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () => void }) {
   const router = useRouter();
@@ -50,7 +51,8 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
 
   return (
     <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Welcome Back</h1>
+      <h1 className="mb-2 text-center text-3xl font-bold">Sign in to Sift</h1>
+      <p className="mb-6 text-center text-muted-foreground">Continue mastering with active recall</p>
 
       <form
         onSubmit={(e) => {
@@ -113,11 +115,13 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
               className="w-full"
               disabled={!state.canSubmit || state.isSubmitting}
             >
-              {state.isSubmitting ? "Submitting..." : "Sign In"}
+              {state.isSubmitting ? "Submitting..." : "Start Sifting"}
             </Button>
           )}
         </form.Subscribe>
       </form>
+      
+      <GoogleAuthButton />
 
       <div className="mt-4 text-center">
         <Button

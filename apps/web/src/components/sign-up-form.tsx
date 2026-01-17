@@ -9,6 +9,7 @@ import Loader from "./loader";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import GoogleAuthButton from "./blocks/GoogleAuthButton";
 
 export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
   const router = useRouter();
@@ -53,7 +54,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
 
   return (
     <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Create Account</h1>
+      <h1 className="mb-2 text-center text-3xl font-bold">Create your Sift account</h1>
+      <p className="mb-6 text-center text-muted-foreground">Unlock precision-engineered active recall</p>
 
       <form
         onSubmit={(e) => {
@@ -138,11 +140,13 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
               className="w-full"
               disabled={!state.canSubmit || state.isSubmitting}
             >
-              {state.isSubmitting ? "Submitting..." : "Sign Up"}
+              {state.isSubmitting ? "Submitting..." : "Start Sifting"}
             </Button>
           )}
         </form.Subscribe>
       </form>
+
+      <GoogleAuthButton />
 
       <div className="mt-4 text-center">
         <Button

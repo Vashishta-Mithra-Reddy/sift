@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
 
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 
 import "../index.css";
-import Header from "@/components/header";
+import Header from "@/components/blocks/Header";
 import Providers from "@/components/providers";
 import { Analytics } from "@vercel/analytics/next"
+import Footer from "@/components/blocks/Footer";
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
 });
 
@@ -18,8 +26,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "sift",
-  description: "sift",
+  title: "Sift | Recall What You've Learned | Active Recall Engine | Quiz Thingy",
+  description: "Sift is a platform that helps you recall information more effectively. Simply put it creates quizes and helps you master the information you learn.",
 };
 
 export default function RootLayout({
@@ -28,13 +36,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${jakarta.variable} antialiased`}>
         <Providers>
-          <div className="grid grid-rows-[auto_1fr] h-svh">
+          <div className="grid min-h-svh grid-rows-[auto_1fr]">
             <Analytics />
             <Header />
-            {children}
+            <main className="wrapperx">
+              {children}
+            </main>
+            <Footer />
           </div>
         </Providers>
       </body>

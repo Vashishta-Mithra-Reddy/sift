@@ -4,7 +4,7 @@ import { Geist, Geist_Mono, Inter, Plus_Jakarta_Sans, Outfit } from "next/font/g
 
 import "../index.css";
 import Header from "@/components/blocks/Header";
-import Providers from "@/components/providers";
+import Providers from "@/components/providers/providers";
 import { Analytics } from "@vercel/analytics/next"
 import Footer from "@/components/blocks/Footer";
 
@@ -44,9 +44,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body className={`${geistSans.variable} ${geistMono.variable} ${jakarta.variable} ${outfit.variable} antialiased relative`}>
         {/* Global Hatching Pattern Background */}
-        <div className="fixed inset-0 -z-50 h-full w-full bg-white dark:bg-black pointer-events-none">
+        {/* <div className="fixed inset-0 -z-50 h-full w-full bg-white dark:bg-black pointer-events-none">
           <div className="absolute h-full w-full bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#00000008_10px,#00000008_11px)] dark:bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#ffffff08_10px,#ffffff08_11px)]" />
-        </div>
+        </div> */}
         
         <Providers>
           <div className="grid min-h-svh grid-rows-[auto_1fr]">

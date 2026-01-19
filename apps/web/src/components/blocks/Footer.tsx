@@ -1,6 +1,7 @@
 "use client";
 
 import ModeToggle from "./ModeToggle";
+import BackgroundToggle from "./BackgroundToggle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -40,6 +41,7 @@ export default function Footer() {
             </div>
           </div>
           <div className="hidden md:flex items-center gap-2">
+            <BackgroundToggle />
             <ModeToggle />
           </div>
         </div>

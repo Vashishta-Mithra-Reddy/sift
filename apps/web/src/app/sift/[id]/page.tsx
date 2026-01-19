@@ -333,7 +333,7 @@ export default function SiftSessionPage() {
   // --- DETAILS VIEW (Default) ---
   if (viewMode === "details") {
       return (
-        <div className="max-w-7xl mx-auto space-y-8">
+        <div className="max-w-7xl mx-auto space-y-8 md:px-4">
             <div className="flex flex-col gap-4">
                 <Button variant="ghost" className="w-fit -ml-4 text-muted-foreground" onClick={() => router.push("/dashboard")}>
                     <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 rotate-180 mr-2" />
@@ -857,7 +857,7 @@ export default function SiftSessionPage() {
 
   if (!currentQ && viewMode === "play") {
     return (
-        <div className="flex h-screen items-center justify-center flex-col gap-4">
+        <div className="flex h-screen items-center justify-center flex-col gap-4 md:px-4">
             <div className="p-4 bg-primary/10 rounded-full text-primary">
                 <HugeiconsIcon icon={Loading03Icon} className="h-8 w-8 animate-spin" />
             </div>

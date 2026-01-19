@@ -107,10 +107,10 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
             <div
                 {...getRootProps()}
                 className={cn(
-                "relative border-2 border-dashed rounded-xl p-8 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-4 h-[300px]",
+                "relative border-2 bg-card/80 border-dashed rounded-xl p-8 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-4 h-[300px]",
                 isDragActive 
-                    ? "border-primary bg-primary/5 scale-[0.99]" 
-                    : "border-border hover:border-primary/50 hover:bg-accent/50",
+                    ? "border-primary bg-card scale-[0.99]" 
+                    : "border-border hover:border-primary/50 hover:bg-card",
                 isUploading && "opacity-50 cursor-not-allowed"
                 )}
             >

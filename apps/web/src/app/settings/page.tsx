@@ -11,7 +11,10 @@ import {
   PaintBoardIcon, 
   Logout01Icon,
   Loading03Icon,
-  Mail01Icon
+  Mail01Icon,
+  Sun01Icon,
+  Moon01Icon,
+  ComputerIcon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { toast } from "sonner";
@@ -53,12 +56,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useFCM } from "@/hooks/use-fcm";
+import { useBackground, type BackgroundPattern } from "@/components/providers/background-provider";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const { theme, setTheme } = useTheme();
   const { permission, requestPermission } = useFCM({ preventInit: true });
+  const { showBackground, setShowBackground, pattern, setPattern } = useBackground();
   
   const [activeTab, setActiveTab] = useState("profile");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -108,8 +113,51 @@ export default function SettingsPage() {
     ?.join("")
     .toUpperCase() || "U";
 
+  const patterns: { id: BackgroundPattern; label: string; preview: string }[] = [
+    { 
+      id: "hatching", 
+      label: "Hatching", 
+      preview: "bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,#00000020_5px,#00000020_6px)] dark:bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,#ffffff20_5px,#ffffff20_6px)]" 
+    },
+    { 
+      id: "grid", 
+      label: "Grid", 
+      preview: "bg-[linear-gradient(to_right,#00000020_1px,transparent_1px),linear-gradient(to_bottom,#00000020_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff20_1px,transparent_1px),linear-gradient(to_bottom,#ffffff20_1px,transparent_1px)] bg-[size:12px_12px]" 
+    },
+    { 
+      id: "dots", 
+      label: "Dots", 
+      preview: "bg-[radial-gradient(#00000040_1.5px,transparent_1.5px)] dark:bg-[radial-gradient(#ffffff40_1.5px,transparent_1.5px)] bg-[size:12px_12px]" 
+    },
+    { 
+      id: "cross", 
+      label: "Cross", 
+      preview: "bg-[radial-gradient(#00000040_1.5px,transparent_1.5px),radial-gradient(#00000040_1.5px,transparent_1.5px)] dark:bg-[radial-gradient(#ffffff40_1.5px,transparent_1.5px),radial-gradient(#ffffff40_1.5px,transparent_1.5px)] bg-[size:12px_12px] [background-position:0_0,6px_6px]" 
+    },
+    {
+      id: "paper",
+      label: "Paper",
+      preview: "bg-[linear-gradient(to_bottom,#00000020_1px,transparent_1px)] dark:bg-[linear-gradient(to_bottom,#ffffff20_1px,transparent_1px)] bg-[size:100%_16px]"
+    },
+    {
+      id: "math",
+      label: "Math",
+      preview: "bg-[linear-gradient(to_right,#00000020_1px,transparent_1px),linear-gradient(to_bottom,#00000020_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff20_1px,transparent_1px),linear-gradient(to_bottom,#ffffff20_1px,transparent_1px)] bg-[size:8px_8px]"
+    },
+    {
+      id: "diamonds",
+      label: "Diamonds",
+      preview: "bg-[linear-gradient(45deg,#00000020_1px,transparent_1px),linear-gradient(-45deg,#00000020_1px,transparent_1px)] dark:bg-[linear-gradient(45deg,#ffffff20_1px,transparent_1px),linear-gradient(-45deg,#ffffff20_1px,transparent_1px)] bg-[size:12px_12px]"
+    },
+    {
+      id: "rain",
+      label: "Rain",
+      preview: "bg-[linear-gradient(to_right,#00000020_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff20_1px,transparent_1px)] bg-[size:12px_100%]"
+    }
+  ];
+
   return (
-    <div className="max-w-7xl w-full md:py-6 md:px-4">
+    <div className="max-w-7xl w-full md:px-4">
       <div className="mb-8 space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
@@ -148,7 +196,7 @@ export default function SettingsPage() {
               Appearance
             </TabsTrigger>
             <TabsTrigger 
-              value="account" 
+              value="account"  
               className="w-full justify-start px-3 py-2 h-10 font-medium transition-colors gap-2"
             >
               <HugeiconsIcon icon={Shield01Icon} className="h-4 w-4" />
@@ -202,6 +250,87 @@ export default function SettingsPage() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="appearance" className="space-y-6 mt-0">
+            <Card>
+              <CardHeader>
+                <CardTitle>Appearance</CardTitle>
+                <CardDescription>
+                  Customize the look and feel of the application.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Theme</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Select your preferred theme.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 border rounded-lg p-1">
+                    <Button 
+                      variant={theme === "light" ? "secondary" : "ghost"} 
+                      size="sm" 
+                      onClick={() => setTheme("light")}
+                      className="h-8 w-8 px-0"
+                    >
+                      <span className="sr-only">Light</span>
+                      <HugeiconsIcon icon={Sun01Icon} className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant={theme === "dark" ? "secondary" : "ghost"} 
+                      size="sm" 
+                      onClick={() => setTheme("dark")}
+                      className="h-8 w-8 px-0"
+                    >
+                      <span className="sr-only">Dark</span>
+                      <HugeiconsIcon icon={Moon01Icon} className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant={theme === "system" ? "secondary" : "ghost"} 
+                      size="sm" 
+                      onClick={() => setTheme("system")}
+                      className="h-8 w-8 px-0"
+                    >
+                      <span className="sr-only">System</span>
+                      <HugeiconsIcon icon={ComputerIcon} className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Background Effect</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Show the hatching pattern background.
+                    </p>
+                  </div>
+                  <Switch 
+                    checked={showBackground}
+                    onCheckedChange={setShowBackground}
+                  />
+                </div>
+
+                {showBackground && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 animate-in slide-in-from-top-2 duration-300 fade-in">
+                    {patterns.map((p) => (
+                      <div 
+                        key={p.id}
+                        className={cn(
+                          "cursor-pointer rounded-lg border-2 p-1 transition-all hover:bg-accent",
+                          pattern === p.id ? "border-primary bg-accent" : "border-muted"
+                        )}
+                        onClick={() => setPattern(p.id)}
+                      >
+                        <div className={cn("h-24 w-full rounded-md mb-2 border", p.preview)} />
+                        <p className="text-xs font-medium text-center pb-1">{p.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="account" className="space-y-6 mt-0">
             <Card>
               <CardHeader>
@@ -226,7 +355,7 @@ export default function SettingsPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="appearance" className="space-y-6 mt-0">
+          {/* <TabsContent value="appearance" className="space-y-6 mt-0">
             <Card>
               <CardHeader>
                 <CardTitle>Appearance</CardTitle>
@@ -293,7 +422,7 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> */}
 
           <TabsContent value="notifications" className="space-y-6 mt-0">
             <Card>

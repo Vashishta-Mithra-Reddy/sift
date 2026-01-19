@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Copy01Icon, CheckmarkCircle01Icon, MagicWand01Icon, Upload01Icon, FlashIcon, PlayIcon } from "@hugeicons/core-free-icons";
+import { Copy01Icon, CheckmarkCircle02Icon, MagicWand01Icon, Upload01Icon, FlashIcon, PlayIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { createImportedSourceAction } from "@/app/dashboard/actions";
 import { useRouter } from "next/navigation";
@@ -265,7 +265,7 @@ export default function AIPage() {
                                 onClick={handleCopyPrompt}
                             >
                                 {copied ? (
-                                    <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-4 w-4 text-green-500" />
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4 text-green-500" />
                                 ) : (
                                     <HugeiconsIcon icon={Copy01Icon} className="h-4 w-4" />
                                 )}

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSiftAction, completeSessionAction, batchUpdateEchoesAction, createSessionAction, saveSessionAnswersAction, getSiftSessionsAction, getSiftSessionDetailsAction, deleteSessionAction } from "./actions";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon, CheckmarkCircle01Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, KeyboardIcon, PlayIcon, Time01Icon, ChartHistogramIcon, ViewIcon, Delete01Icon, Target02Icon, StarIcon, Share01Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, KeyboardIcon, PlayIcon, Time01Icon, ChartHistogramIcon, ViewIcon, Delete01Icon, Target02Icon, StarIcon, Share01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -473,7 +473,7 @@ export default function SiftSessionPage() {
                                                 <div key={session.id} className="flex items-center justify-between p-4 rounded-xl border bg-muted/20 hover:bg-muted/40 transition-all group">
                                                     <div className="flex items-center gap-4">
                                                         <div className={cn(
-                                                            "h-12 w-14 px-7  rounded-xl flex items-center justify-center border-2 shrink-0",
+                                                            "h-11 w-14 px-8 rounded-xl flex items-center justify-center border-2 shrink-0",
                                                             session.status === "completed" 
                                                                 ? (session.score >= 80 ? "bg-green-100 border-green-200 text-green-600 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400" 
                                                                 : session.score >= 50 ? "bg-yellow-100 border-yellow-200 text-yellow-600 dark:bg-yellow-900/20 dark:border-yellow-900/50 dark:text-yellow-400"
@@ -660,7 +660,7 @@ export default function SiftSessionPage() {
                     <div className="flex-1 grid grid-cols-1 gap-4 content-center">
                         <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
                             <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
-                                <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-6 w-6" />
+                                <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-6 w-6" />
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground font-medium">Correct Answers</p>
@@ -749,7 +749,7 @@ export default function SiftSessionPage() {
                                     </h3>
                                     {isCorrect ? (
                                         <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
-                                            <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-5 w-5" />
+                                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-5 w-5" />
                                         </div>
                                     ) : (
                                         <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600 dark:text-red-400">
@@ -805,7 +805,7 @@ export default function SiftSessionPage() {
                                                         
                                                         {isCorrectOption && !isSelected && (
                                                             <div className="absolute top-2 right-2">
-                                                                <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                                                <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4 text-green-600 dark:text-green-400" />
                                                             </div>
                                                         )}
                                                     </div>
@@ -964,7 +964,7 @@ export default function SiftSessionPage() {
                                                             } else {
                                                                 isThisCorrect = option === currentQ?.answer;
                                                             }
-                                                            if (isThisCorrect) return <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-5 w-5 text-green-600" />;
+                                                            if (isThisCorrect) return <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-5 w-5 text-green-600" />;
                                                             if (option === selectedOption) return <HugeiconsIcon icon={Cancel01Icon} className="h-5 w-5 text-red-600" />;
                                                             return null;
                                                         })()}

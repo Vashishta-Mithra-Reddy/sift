@@ -69,7 +69,7 @@ export default function Dashboard({ session }: DashboardProps) {
   };
 
   return (
-    <div className="mx-auto space-y-8">
+    <div className="mx-auto space-y-8 md:px-4">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Library</h1>
         <p className="text-muted-foreground">

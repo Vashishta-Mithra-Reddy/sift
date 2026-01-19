@@ -1,55 +1,30 @@
-"use client";
+// import { HugeiconsIcon } from "@hugeicons/react";
+// import { FlashIcon, BookOpen01Icon, ChartHistogramIcon } from "@hugeicons/core-free-icons";
+import { auth } from "@sift/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import Hero from "@/components/blocks/Hero";
+import Features from "@/components/blocks/Features";
+import HowItWorks from "@/components/blocks/HowItWorks";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon, FlashIcon, BookOpen01Icon, ChartHistogramIcon } from "@hugeicons/core-free-icons";
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-
-export default function Home() {
-  const { data: session } = authClient.useSession();
-  const router = useRouter();
+export default async function Home() {
+  const requestHeaders = await headers();
+  const session = await auth.api.getSession({
+    headers: requestHeaders,
+  });
 
   if (session) {
-    router.push("/dashboard");
-    return null;
+    redirect("/dashboard");
   }
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)]">
-      {/* Hero Section */}
-      <section className="flex-1 flex flex-col items-center justify-center text-center px-4 py-20 md:py-32 space-y-8">
-        <div className="space-y-4 max-w-3xl">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-transparent">
-            Turn Passive Consumption <br />
-            Into <span className="text-primary">Active Mastery</span>.
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Sift is a minimalist active recall engine. Upload any document, notes, or recording, 
-            and instantly generate precision-engineered quizzes to lock knowledge into your brain.
-          </p>
-        </div>
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] max-w-7xl mx-auto w-full">
+      <Hero />
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link href="/login">
-            <Button size="lg" className="h-12 px-8 text-lg gap-2">
-              Start Sifting
-              <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5" />
-            </Button>
-          </Link>
-          <Link href="#features">
-             <Button size="lg" variant="outline" className="h-12 px-8 text-lg">
-                Learn More
-             </Button>
-          </Link>
-        </div>
-      </section>
-
-      {/* Feature Grid */}
-      <section id="features" className="container mx-auto px-4 py-20 border-t">
+      {/* Feature Grid
+      <section id="features" className="mx-auto py-9 px-4 md:px-0 border-t-0 border-dashed">
         <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-2xl border bg-card text-card-foreground shadow-sm space-y-4">
+            <div className="p-6 rounded-2xl border bg-card text-card-foreground space-y-4">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                     <HugeiconsIcon icon={BookOpen01Icon} className="h-6 w-6" />
                 </div>
@@ -58,7 +33,7 @@ export default function Home() {
                     Drag and drop PDFs, Markdown, or paste URLs. Sift parses your content and prepares it for deep learning instantly.
                 </p>
             </div>
-            <div className="p-6 rounded-2xl border bg-card text-card-foreground shadow-sm space-y-4">
+            <div className="p-6 rounded-2xl border bg-card text-card-foreground space-y-4">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                     <HugeiconsIcon icon={FlashIcon} className="h-6 w-6" />
                 </div>
@@ -67,7 +42,7 @@ export default function Home() {
                     No distractions. Just you and the questions. Experience a flow-state study session designed for maximum retention.
                 </p>
             </div>
-            <div className="p-6 rounded-2xl border bg-card text-card-foreground shadow-sm space-y-4">
+            <div className="p-6 rounded-2xl border bg-card text-card-foreground space-y-4">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                     <HugeiconsIcon icon={ChartHistogramIcon} className="h-6 w-6" />
                 </div>
@@ -77,7 +52,10 @@ export default function Home() {
                 </p>
             </div>
         </div>
-      </section>
+      </section> */}
+
+      <Features />
+      <HowItWorks />
     </div>
   );
 }

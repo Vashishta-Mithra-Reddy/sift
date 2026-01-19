@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { Geist, Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Plus_Jakarta_Sans, Outfit } from "next/font/google";
 
 import "../index.css";
 import Header from "@/components/blocks/Header";
@@ -17,6 +17,11 @@ const geistSans = Geist({
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
+  subsets: ["latin"],
+});
+
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
@@ -37,7 +42,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${jakarta.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${jakarta.variable} ${outfit.variable} antialiased relative`}>
+        {/* Global Hatching Pattern Background */}
+        <div className="fixed inset-0 -z-50 h-full w-full bg-white dark:bg-black pointer-events-none">
+          <div className="absolute h-full w-full bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#00000008_10px,#00000008_11px)] dark:bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#ffffff08_10px,#ffffff08_11px)]" />
+        </div>
+        
         <Providers>
           <div className="grid min-h-svh grid-rows-[auto_1fr]">
             <Analytics />

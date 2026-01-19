@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 // import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 // import MenuToggle from "./MenuToggle";
@@ -16,17 +16,8 @@ interface HeaderProps {
 
 export default function Header({ authButton }: HeaderProps) {
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   
   const { data: session } = authClient.useSession();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const filteredNavItems = NAVIGATION_ITEMS.filter((item) => {
     if (item.hideOnDesktop) return false;
@@ -35,13 +26,11 @@ export default function Header({ authButton }: HeaderProps) {
 
   return (
     <header className={
-      `sticky top-0 z-50 border-b-0 transition-all duration-500 font-jakarta ${
-        scrolled ? "pt-0 sm:pt-3" : "sm:pt-6 pt-0"
+      `sticky top-0 z-50 border-b backdrop-blur font-jakarta ${
+        open ? "bg-white/90 dark:bg-black/80" : "bg-white/80 dark:bg-black/60"
       }`
     }>
-      <nav className={`mx-auto flex py-4 items-center justify-between max-w-7xl bg-foreground/5 px-4 md:px-7 sm:rounded-xl backdrop-blur border border-foreground/5 ${
-        open ? "bg-white/90 dark:bg-black/80" : "bg-white/80 dark:bg-background/75"
-      }`}>
+      <nav className="mx-auto flex py-3 items-center justify-between px-4 max-w-7xl">
         {/* Logo */}
         <Link href="/" className="text-xl font-semibold flex items-center">
           <p className="text-3xl font-bold text-foreground tracking-tighter">sift.</p>

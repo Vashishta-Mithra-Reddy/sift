@@ -41,7 +41,7 @@ export default function EchoesPage() {
   } satisfies ChartConfig;
 
   return (
-    <div className="mx-auto space-y-8">
+    <div className="mx-auto md:px-4 space-y-8">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Echoes</h1>
         <p className="text-muted-foreground">

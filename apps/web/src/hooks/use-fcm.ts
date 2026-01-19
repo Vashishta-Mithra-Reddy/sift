@@ -6,6 +6,7 @@ import { getFirebaseMessaging } from "@/lib/firebase";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { savePushTokenAction, removePushTokenAction } from "@/app/push-actions";
 
 export function useFCM(options: { preventInit?: boolean } = {}) {
   const { data: session } = authClient.useSession();
@@ -79,15 +80,17 @@ export function useFCM(options: { preventInit?: boolean } = {}) {
           // Check if we already sent this token for this user
           if (token !== tokenSentRef.current || session.user.id !== userIdRef.current) {
             console.log("[FCM] Token generated, saving to server...", token.slice(0, 10) + "...");
-            const result = await savePushToken(session.user.id, token, "web");
-            if (result?.success) {
-              console.log("[FCM] Token saved successfully");
-              tokenSentRef.current = token;
-              userIdRef.current = session.user.id;
-              localStorage.setItem("fcm_enabled", "true");
-              localStorage.setItem("fcm_token", token);
-            } else {
-              console.error("[FCM] Failed to save token to server");
+            try {
+              const result = await savePushTokenAction(token, "web");
+              if (result) {
+                console.log("[FCM] Token saved successfully");
+                tokenSentRef.current = token;
+                userIdRef.current = session.user.id;
+                localStorage.setItem("fcm_enabled", "true");
+                localStorage.setItem("fcm_token", token);
+              }
+            } catch (error) {
+              console.error("[FCM] Failed to save token to server", error);
             }
           }
         } else {
@@ -141,7 +144,7 @@ export function useFCM(options: { preventInit?: boolean } = {}) {
     
     if (tokenToRemove) {
       try {
-        await removePushToken(tokenToRemove);
+        await removePushTokenAction(tokenToRemove);
         setFcmToken(null);
         tokenSentRef.current = null; // Reset sent ref so we can register again if needed
         console.log("[FCM] Token removed from server");

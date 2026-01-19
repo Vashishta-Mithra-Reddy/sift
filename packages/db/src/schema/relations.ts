@@ -3,6 +3,7 @@ import { user, session, account } from "./auth";
 import { sources } from "./sources";
 import { sifts, questions, siftSessions, sessionAnswers } from "./sifts";
 import { echoes } from "./echoes";
+import { pushTokens } from "./push-tokens";
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
@@ -10,6 +11,7 @@ export const userRelations = relations(user, ({ many }) => ({
   sources: many(sources),
   sifts: many(sifts),
   echoes: many(echoes),
+  pushTokens: many(pushTokens),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -87,5 +89,12 @@ export const echoesRelations = relations(echoes, ({ one }) => ({
   source: one(sources, {
     fields: [echoes.sourceId],
     references: [sources.id],
+  }),
+}));
+
+export const pushTokensRelations = relations(pushTokens, ({ one }) => ({
+  user: one(user, {
+    fields: [pushTokens.userId],
+    references: [user.id],
   }),
 }));

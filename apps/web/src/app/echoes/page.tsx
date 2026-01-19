@@ -6,7 +6,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ChartHistogramIcon, ChampionIcon } from "@hugeicons/core-free-icons";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import type { Echo } from "@sift/auth/types";
+import { cn } from "@/lib/utils";
 
 export default function EchoesPage() {
   const [echoes, setEchoes] = useState<Echo[]>([]);
@@ -29,6 +32,13 @@ export default function EchoesPage() {
   // Calculate stats
   const totalMastery = echoes.reduce((acc, echo) => acc + echo.masteryLevel, 0);
   const avgMastery = echoes.length > 0 ? Math.round(totalMastery / echoes.length) : 0;
+
+  const chartConfig = {
+    masteryLevel: {
+      label: "Mastery",
+      color: "hsl(var(--chart-1))",
+    },
+  } satisfies ChartConfig;
 
   return (
     <div className="mx-auto space-y-8">
@@ -59,6 +69,26 @@ export default function EchoesPage() {
         </Card>
       </div>
 
+      {echoes.length > 0 && (
+        <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Mastery Overview</h2>
+            <ChartContainer config={chartConfig} className="min-h-[200px] max-h-[400px] w-full">
+              <BarChart accessibilityLayer data={echoes}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="topic"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickFormatter={(value) => value.length > 10 ? `${value.slice(0, 10)}...` : value}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="masteryLevel" fill="var(--chart-1)" radius={4} />
+              </BarChart>
+            </ChartContainer>
+        </div>
+      )}
+
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Topic Mastery</h2>
         <div className="grid gap-4">
@@ -69,12 +99,15 @@ export default function EchoesPage() {
                         <div className="text-xs text-muted-foreground">Last reviewed: {new Date(echo.lastReviewedAt).toLocaleDateString()}</div>
                     </div>
                     <div className="flex items-center gap-4 w-1/3">
-                        <div className="text-sm font-medium w-12 text-right">{echo.masteryLevel}%</div>
-                        <Progress value={echo.masteryLevel} className={
-                            echo.masteryLevel > 80 ? "bg-green-100 [&>div]:bg-green-500" :
-                            echo.masteryLevel > 50 ? "bg-yellow-100 [&>div]:bg-yellow-500" : 
-                            "bg-red-100 [&>div]:bg-red-500"
-                        } />
+                        <div className={cn(
+                            "text-sm font-semibold w-12 text-right"
+                        )}>{echo.masteryLevel}%</div>
+                        <Progress value={echo.masteryLevel} className={cn(
+                            "h-2",
+                            echo.masteryLevel >= 80 ? "[&>*]:bg-emerald-500" :
+                            echo.masteryLevel >= 50 ? "[&>*]:bg-amber-500" : 
+                            "[&>*]:bg-rose-500"
+                        )} />
                     </div>
                 </div>
             ))}

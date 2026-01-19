@@ -2,18 +2,23 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getSiftAction, completeSessionAction, batchUpdateEchoesAction, createSessionAction, saveSessionAnswersAction, getSiftSessionsAction, getSiftSessionDetailsAction } from "./actions";
+import { getSiftAction, completeSessionAction, batchUpdateEchoesAction, createSessionAction, saveSessionAnswersAction, getSiftSessionsAction, getSiftSessionDetailsAction, deleteSessionAction } from "./actions";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon, CheckmarkCircle01Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, KeyboardIcon, PlayIcon, Time01Icon, ChartHistogramIcon, ViewIcon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, CheckmarkCircle01Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, KeyboardIcon, PlayIcon, Time01Icon, ChartHistogramIcon, ViewIcon, Delete01Icon, Target02Icon, StarIcon, Share01Icon } from "@hugeicons/core-free-icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogMedia } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import type { SiftWithQuestions, Question } from "@sift/auth/types";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import useSound from "use-sound";
 import { formatDistanceToNow } from "date-fns";
+import { Pie, PieChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 export default function SiftSessionPage() {
   const params = useParams();
@@ -41,6 +46,35 @@ export default function SiftSessionPage() {
   const [playClick] = useSound('/audio/click.wav', { volume: 0.5 });
   const [playSuccess] = useSound('/audio/success.mp3', { volume: 0.5 });
   const [playNotification] = useSound('/audio/notification.wav', { volume: 0.3 });
+
+  const [deletingSession, setDeletingSession] = useState<string | null>(null);
+
+  const pieChartConfig = {
+    correct: {
+        label: "Correct",
+        color: "#22c55e",
+    },
+    incorrect: {
+        label: "Incorrect",
+        color: "#ef4444",
+    },
+  } satisfies ChartConfig;
+
+  const barChartConfig = {
+    score: {
+        label: "Score",
+        color: "hsl(var(--chart-1))",
+    }
+  } satisfies ChartConfig;
+
+  // Compute chart data from sessions
+  const chartData = sessions
+    .filter(s => s.status === "completed" && s.score !== null)
+    .sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime())
+    .map(s => ({
+        date: new Date(s.completedAt).toLocaleDateString(),
+        score: s.score
+    }));
 
   const fetchSiftData = useCallback(async () => {
     try {
@@ -114,8 +148,20 @@ export default function SiftSessionPage() {
     } finally {
         setLoading(false);
     }
-  };  // ... (Keep handleOptionClick, handleCheckAnswer, handleNext logic but adapted) ...
+  };
 
+  const handleDeleteSession = async (sessionId: string) => {
+      setDeletingSession(sessionId);
+      try {
+          await deleteSessionAction(sessionId);
+          toast.success("Session deleted");
+          fetchSiftData();
+      } catch (e) {
+          toast.error("Failed to delete session");
+      } finally {
+          setDeletingSession(null);
+      }
+  };
 
   const handleOptionClick = useCallback((option: string) => {
     if (showAnswer) return; 
@@ -311,63 +357,228 @@ export default function SiftSessionPage() {
             <div className="grid md:grid-cols-3 gap-8">
                 <div className="md:col-span-3 space-y-8">
                     {/* Hero Card */}
-                    <Card className="p-8 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20 justify-center items-center flex flex-col">
+                    <Card className="p-8 border-primary/20 justify-center items-center flex flex-col font-jakarta">
                         <div className="space-y-6 text-center">
                             <div className="space-y-2">
                                 <h2 className="text-2xl font-bold">Ready to practice?</h2>
-                                <p className="text-muted-foreground">
+                                <p className="text-lg text-muted-foreground">
                                     Start a new session to test your knowledge and improve mastery.
                                 </p>
                             </div>
                             <Button size="lg" className="w-full sm:w-auto text-base px-8 h-12 gap-2" onClick={() => handleStartSession(sift.id)}>
                                 <HugeiconsIcon icon={PlayIcon} className="h-5 w-5 fill-current" />
-                                Start New Session
+                                Start New Quiz
                             </Button>
                         </div>
                     </Card>
 
                     {/* Past Sessions List */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                        {/* <h3 className="text-lg font-semibold flex items-center gap-2">
                             <HugeiconsIcon icon={ChartHistogramIcon} className="h-5 w-5" />
-                            Past Sessions
-                        </h3>
-                        {sessions.length > 0 ? (
-                            <div className="grid gap-3">
-                                {sessions.map((session) => (
-                                    <Card key={session.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className={cn(
-                                                    "px-2 py-0.5 rounded-full text-xs font-medium capitalize",
-                                                    session.status === "completed" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                                )}>
-                                                    {session.status.replace("_", " ")}
-                                                </span>
-                                                <span className="text-sm text-muted-foreground">
-                                                    {formatDistanceToNow(new Date(session.startedAt))} ago
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            {session.score !== null && (
-                                                <div className="text-center">
-                                                    <span className="block text-2xl font-bold leading-none">{session.score}%</span>
-                                                    <span className="text-xs text-muted-foreground">Score</span>
-                                                </div>
-                                            )}
-                                            <Button variant="ghost" size="icon" onClick={() => handleViewSession(session.id)}>
-                                                <HugeiconsIcon icon={ViewIcon} className="h-5 w-5" />
-                                            </Button>
-                                        </div>
-                                    </Card>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="p-8 border-2 border-dashed rounded-xl text-center text-muted-foreground bg-muted/20">
-                                No sessions yet. Start your first one!
-                            </div>
+                            Performance History
+                        </h3> */}
+
+                        {/* Performance Chart */}
+                        {chartData.length > 0 && (
+                            <Card className="font-jakarta">
+                                <CardHeader>
+                                    <CardTitle className="text-xl flex items-center gap-2">
+                                        <HugeiconsIcon icon={ChartHistogramIcon} className="h-5 w-5" />
+                                        Performance History
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {chartData.length > 1 
+                                            ? `Last ${chartData.length} sessions performance`
+                                            : "Latest session performance"
+                                        }
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="h-[40vh]">
+                                    <ChartContainer className="h-[40vh] pt-6 pb-2 w-full" config={barChartConfig}>
+                                        <BarChart accessibilityLayer data={chartData}>
+                                            <CartesianGrid vertical={false} />
+                                            <XAxis 
+                                                dataKey="date" 
+                                                tickLine={false} 
+                                                tickMargin={10} 
+                                                axisLine={false} 
+                                                tickFormatter={(value) => value} 
+                                            />
+                                            <YAxis 
+                                                tickLine={false} 
+                                                axisLine={false} 
+                                                domain={[0, 100]} 
+                                                tickMargin={10}
+                                            />
+                                            <ChartTooltip 
+                                                cursor={false} 
+                                                content={<ChartTooltipContent hideLabel />} 
+                                            />
+                                            <Bar dataKey="score" fill="var(--chart-1)" radius={8} />
+                                        </BarChart>
+                                    </ChartContainer>
+                                </CardContent>
+                                <CardFooter className="flex-col items-start gap-2 text-sm">
+                                    <div className="flex gap-2 leading-none font-medium">
+                                        {chartData.length > 1 ? (
+                                            <>
+                                                {(() => {
+                                                    const last = chartData[chartData.length - 1].score;
+                                                    const prev = chartData[chartData.length - 2].score;
+                                                    const diff = last - prev;
+                                                    return diff > 0 
+                                                        ? `Trending up by ${diff}%` 
+                                                        : diff < 0 
+                                                            ? `Trending down by ${Math.abs(diff)}%` 
+                                                            : "Maintained same score";
+                                                })()}
+                                                {/* <HugeiconsIcon icon={ChartHistogramIcon} className="h-4 w-4" /> */}
+                                            </>
+                                        ) : (
+                                            "Complete more sessions to see trends"
+                                        )}
+                                    </div>
+                                    <div className="text-muted-foreground leading-none">
+                                        Showing total scores for the last {chartData.length} sessions
+                                    </div>
+                                </CardFooter>
+                            </Card>
                         )}
+
+                        <Card className="font-jakarta">
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-xl flex items-center gap-2">
+                                            <HugeiconsIcon icon={Time01Icon} className="h-5 w-5 text-muted-foreground" />
+                                            Session History
+                                        </CardTitle>
+                                        <CardDescription>
+                                            Your recent practice sessions and scores
+                                        </CardDescription>
+                                    </div>
+                                    {sessions.length > 0 && (
+                                        <Badge variant="outline" className="px-3 py-1 h-7">
+                                            {sessions.length} Session{sessions.length !== 1 ? 's' : ''}
+                                        </Badge>
+                                    )}
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                {sessions.length > 0 ? (
+                                    <ScrollArea className="h-[400px] pr-4">
+                                        <div className="space-y-4">
+                                            {sessions.map((session) => (
+                                                <div key={session.id} className="flex items-center justify-between p-4 rounded-xl border bg-muted/20 hover:bg-muted/40 transition-all group">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={cn(
+                                                            "h-12 w-14 px-7  rounded-xl flex items-center justify-center border-2 shrink-0",
+                                                            session.status === "completed" 
+                                                                ? (session.score >= 80 ? "bg-green-100 border-green-200 text-green-600 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400" 
+                                                                : session.score >= 50 ? "bg-yellow-100 border-yellow-200 text-yellow-600 dark:bg-yellow-900/20 dark:border-yellow-900/50 dark:text-yellow-400"
+                                                                : "bg-red-100 border-red-200 text-red-600 dark:bg-red-900/20 dark:border-red-900/50 dark:text-red-400")
+                                                                : "bg-muted border-muted-foreground/20 text-muted-foreground"
+                                                        )}>
+                                                            {session.status === "completed" ? (
+                                                                <span className="font-bold text-sm">{session.score}%</span>
+                                                            ) : (
+                                                                <HugeiconsIcon icon={PlayIcon} className="h-5 w-5 fill-current" />
+                                                            )}
+                                                        </div>
+                                                        
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <h4 className="font-medium leading-none">
+                                                                    {session.status === "completed" ? "Completed Session" : "Incomplete Session"}
+                                                                </h4>
+                                                                {session.status === "completed" && session.score >= 90 && (
+                                                                    <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0 h-5 text-[10px] px-1.5">
+                                                                        Excellent
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                                <span className="flex items-center gap-1">
+                                                                    <HugeiconsIcon icon={Time01Icon} className="h-3 w-3" />
+                                                                    {formatDistanceToNow(new Date(session.startedAt))} ago
+                                                                </span>
+                                                                <span>•</span>
+                                                                <span>
+                                                                    {new Date(session.startedAt).toLocaleDateString()}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-1">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => handleViewSession(session.id)}>
+                                                            <HugeiconsIcon icon={ViewIcon} className="h-4 w-4" />
+                                                            <span className="sr-only">View</span>
+                                                        </Button>
+                                                        
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="icon" 
+                                                                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                                                    disabled={deletingSession === session.id}
+                                                                >
+                                                                    {deletingSession === session.id ? (
+                                                                        <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                                                                    ) : (
+                                                                        <HugeiconsIcon icon={Delete01Icon} className="h-4 w-4" />
+                                                                    )}
+                                                                    <span className="sr-only">Delete</span>
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent className="font-jakarta">
+                                                                <AlertDialogHeader>
+                                                                    <div className="w-full flex flex-col justify-center items-center gap-2">
+                                                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+                                                                            <HugeiconsIcon icon={Delete01Icon} className="h-6 w-6 text-red-600 dark:text-red-400" />
+                                                                        </div>
+                                                                        <AlertDialogTitle className="text-lg font-semibold">Delete Session?</AlertDialogTitle>
+                                                                    </div>
+                                                                    <AlertDialogDescription className="text-center text-balance flex flex-col items-center justify-center w-full">
+                                                                        Are you sure you want to delete this session? <br/> This action cannot be undone.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction 
+                                                                        onClick={() => handleDeleteSession(session.id)}
+                                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                    >
+                                                                        Delete
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                                        <div className="p-4 rounded-full bg-muted/50">
+                                            <HugeiconsIcon icon={ChartHistogramIcon} className="h-8 w-8 text-muted-foreground" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h3 className="font-semibold text-lg">No sessions yet</h3>
+                                            <p className="text-muted-foreground text-sm max-w-[250px]">
+                                                Start your first practice session to begin tracking your progress.
+                                            </p>
+                                        </div>
+                                        <Button onClick={() => handleStartSession(sift.id)} variant="outline" className="mt-2">
+                                            Start Session
+                                        </Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
 
@@ -382,41 +593,114 @@ export default function SiftSessionPage() {
 
   // --- SUMMARY VIEW ---
   if (viewMode === "summary") {
+    const accuracy = Math.round((correctCount / sift.questions.length) * 100);
+    const incorrectCount = sift.questions.length - correctCount;
+
     return (
-        <div className="container max-w-4xl mx-auto py-10 space-y-8 animate-in fade-in zoom-in duration-500">
-            <div className="text-center space-y-8">
-                <motion.div 
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", bounce: 0.5 }}
-                    className="flex justify-center"
-                >
-                    <div className="p-8 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400 ring-8 ring-green-50 dark:ring-green-900/10">
-                        <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-16 w-16" />
-                    </div>
-                </motion.div>
-                
-                <div className="space-y-2">
-                    <h1 className="text-4xl font-bold tracking-tight">Session Complete!</h1>
-                    <p className="text-xl text-muted-foreground">
-                        Great job sifting through <span className="font-semibold text-foreground">"{sift.source?.title}"</span>.
-                    </p>
-                    <div className="py-4">
-                        <span className="text-5xl font-black text-primary">{Math.round((correctCount / sift.questions.length) * 100)}%</span>
-                        <p className="text-sm text-muted-foreground">Final Score</p>
+        <div className="h-[calc(100vh-8rem)] flex items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
+            <Card className="w-full max-w-5xl grid md:grid-cols-2 overflow-hidden border-0 ring-1 ring-border">
+                {/* Left Column: Score & Chart */}
+                <div className="flex flex-col items-center justify-center p-8 md:p-12 space-y-8 text-center relative overflow-hidden">
+                    <motion.div 
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", bounce: 0.5 }}
+                        className="relative z-10"
+                    >
+                        <div className="relative">
+                            <ChartContainer config={pieChartConfig} className="aspect-square h-[240px] w-[240px]">
+                                <PieChart>
+                                    <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent hideLabel />}
+                                    />
+                                    <Pie
+                                        data={[
+                                            { name: 'correct', value: correctCount, fill: "var(--color-correct)" },
+                                            { name: 'incorrect', value: incorrectCount, fill: "var(--color-incorrect)" },
+                                        ]}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        innerRadius={80}
+                                        outerRadius={110}
+                                        strokeWidth={0}
+                                        cornerRadius={4}
+                                        paddingAngle={2}
+                                    />
+                                </PieChart>
+                            </ChartContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <motion.div
+                                    initial={{ y: 10, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="text-center"
+                                >
+                                    <span className="text-5xl font-bold tracking-tighter block">{accuracy}%</span>
+                                    <span className="text-sm text-muted-foreground font-medium uppercase tracking-widest mt-1 block">Accuracy</span>
+                                </motion.div>
+                            </div>
+                        </div>
+                    </motion.div>
+                    
+                    <div className="space-y-2 relative z-10">
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            {accuracy >= 80 ? "Outstanding!" :
+                             accuracy >= 50 ? "Good Job!" :
+                             "Keep Practicing!"}
+                        </h1>
+                        <p className="text-muted-foreground max-w-[250px] mx-auto">
+                            You've completed <span className="font-semibold text-foreground">"{sift.source?.title}"</span>
+                        </p>
                     </div>
                 </div>
 
-                <div className="flex justify-center gap-4 pt-4">
-                    <Button size="lg" onClick={() => setViewMode("details")} className="gap-2">
-                        <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 rotate-180" />
-                        Back to Sift Details
-                    </Button>
-                    <Button size="lg" variant="outline" onClick={() => setViewMode("review")}>
-                        Review Answers
-                    </Button>
+                {/* Right Column: Stats & Actions */}
+                <div className="flex flex-col p-8 md:p-12 space-y-8 bg-card">
+                    <div className="flex-1 grid grid-cols-1 gap-4 content-center">
+                        <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
+                            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
+                                <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground font-medium">Correct Answers</p>
+                                <p className="text-2xl font-bold">{correctCount}</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
+                            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600 dark:text-red-400">
+                                <HugeiconsIcon icon={Cancel01Icon} className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground font-medium">Incorrect Answers</p>
+                                <p className="text-2xl font-bold">{incorrectCount}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
+                            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
+                                <HugeiconsIcon icon={Target02Icon} className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground font-medium">Total Questions</p>
+                                <p className="text-2xl font-bold">{sift.questions.length}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-4">
+                        <Button size="lg" onClick={() => setViewMode("details")} variant="outline" className="h-14 text-base">
+                            <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5 rotate-180 mr-2" />
+                            Return
+                        </Button>
+                        <Button size="lg" onClick={() => setViewMode("review")} className="h-14 text-base">
+                            Review
+                            <HugeiconsIcon icon={ViewIcon} className="h-5 w-5 ml-2" />
+                        </Button>
+                    </div>
                 </div>
-            </div>
+            </Card>
         </div>
     );
   }

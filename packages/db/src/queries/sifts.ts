@@ -123,3 +123,16 @@ export async function getSiftSessionDetails(sessionId: string) {
         }
     });
 }
+
+export async function deleteSiftSession(sessionId: string, userId: string) {
+    // Ensure the session belongs to the user
+    const session = await db.query.siftSessions.findFirst({
+        where: and(eq(siftSessions.id, sessionId), eq(siftSessions.userId, userId))
+    });
+
+    if (!session) {
+        throw new Error("Session not found or unauthorized");
+    }
+
+    await db.delete(siftSessions).where(eq(siftSessions.id, sessionId));
+}

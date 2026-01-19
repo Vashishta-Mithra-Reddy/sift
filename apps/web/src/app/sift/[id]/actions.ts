@@ -1,6 +1,6 @@
 "use server";
 
-import { getSift, createSiftSession, updateSiftSession, addSessionAnswers, getSiftSessions, getSiftSessionDetails } from "@sift/auth/actions/sifts";
+import { getSift, createSiftSession, updateSiftSession, addSessionAnswers, getSiftSessions, getSiftSessionDetails, deleteSiftSession } from "@sift/auth/actions/sifts";
 import { updateEchoMastery, batchUpdateEchoesAction as batchUpdateEchoes } from "@sift/auth/actions/echoes";
 import { headers } from "next/headers";
 
@@ -42,4 +42,9 @@ export async function batchUpdateEchoesAction(sourceId: string, updates: { topic
 export async function completeSessionAction(id: string, score: number) {
     const headerStore = await headers();
     await updateSiftSession(id, { status: "completed", score, completedAt: new Date() }, headerStore);
+}
+
+export async function deleteSessionAction(sessionId: string) {
+    const headerStore = await headers();
+    await deleteSiftSession(sessionId, headerStore);
 }

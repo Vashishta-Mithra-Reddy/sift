@@ -52,30 +52,45 @@ export async function batchUpdateEchoMastery(
 ) {
     if (updates.length === 0) return;
 
-    // Since Drizzle doesn't support bulk upsert easily with different values for each row in a single query
-    // (unless using unnest/json_table which is complex), we'll use a transaction of single upserts.
-    // It's still better than independent network calls.
-    
-    await db.transaction(async (tx) => {
-        for (const update of updates) {
-            const id = crypto.randomUUID();
-            const newEcho: NewEcho = {
-                id,
-                userId,
-                sourceId,
-                topic: update.topic,
-                masteryLevel: update.level,
-                lastReviewedAt: new Date(),
-            };
+    // 1. Aggregate updates by topic to avoid "ON CONFLICT" duplicate key errors within the same batch.
+    // We calculate the average mastery level for duplicate topics in this batch.
+    const aggregated = updates.reduce((acc, { topic, level }) => {
+        if (!acc.has(topic)) {
+            acc.set(topic, { total: 0, count: 0 });
+        }
+        const entry = acc.get(topic)!;
+        entry.total += level;
+        entry.count += 1;
+        return acc;
+    }, new Map<string, { total: number; count: number }>());
 
-            await tx.insert(echoes).values(newEcho).onConflictDoUpdate({
-                target: [echoes.userId, echoes.sourceId, echoes.topic],
-                set: {
-                    masteryLevel: update.level,
-                    lastReviewedAt: new Date(),
-                    updatedAt: new Date(),
-                }
-            });
+    const uniqueUpdates = Array.from(aggregated.entries()).map(([topic, { total, count }]) => ({
+        topic,
+        level: Math.round(total / count)
+    }));
+
+    // 2. Use bulk upsert with ON CONFLICT DO UPDATE
+    const values: NewEcho[] = uniqueUpdates.map(update => ({
+        id: crypto.randomUUID(),
+        userId,
+        sourceId,
+        topic: update.topic,
+        masteryLevel: update.level,
+        lastReviewedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    }));
+
+    await db.insert(echoes).values(values).onConflictDoUpdate({
+        target: [echoes.userId, echoes.sourceId, echoes.topic],
+        set: {
+            // Update with the new calculated average for this batch
+            // In the future, we might want to average with the EXISTING db value too:
+            // masteryLevel: sql`(${echoes.masteryLevel} + excluded.mastery_level) / 2`
+            // For now, "latest batch wins" is the logic.
+            masteryLevel: sql`excluded.mastery_level`,
+            lastReviewedAt: sql`excluded.last_reviewed_at`,
+            updatedAt: new Date(),
         }
     });
 }

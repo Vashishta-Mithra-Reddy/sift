@@ -9,6 +9,7 @@ import {
     addSessionAnswers as dbAddSessionAnswers,
     getSiftSessions as dbGetSiftSessions,
     getSiftSessionDetails as dbGetSiftSessionDetails,
+    deleteSiftSession as dbDeleteSiftSession,
     type CreateSiftInput, 
     type CreateQuestionInput 
 } from "@sift/db/queries/sifts";
@@ -140,4 +141,16 @@ export async function getSiftSessionDetails(sessionId: string, headers: Headers)
     }
 
     return siftSession;
+}
+
+export async function deleteSiftSession(sessionId: string, headers: Headers) {
+    const session = await auth.api.getSession({
+        headers,
+    });
+
+    if (!session?.user) {
+        throw new Error("Unauthorized");
+    }
+
+    await dbDeleteSiftSession(sessionId, session.user.id);
 }

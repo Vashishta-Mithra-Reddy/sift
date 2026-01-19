@@ -3,12 +3,12 @@
 import { useState } from "react";
 // import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import MenuToggle from "./MenuToggle";
+// import MenuToggle from "./MenuToggle";
 import Link from "next/link";
 import { NAVIGATION_ITEMS } from "@/app/config/navigation";
 import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/user-menu";
-import { NotificationCenter } from "../notifications/notification-center";
+// import { NotificationCenter } from "../notifications/notification-center";
 
 interface HeaderProps {
   authButton?: React.ReactNode;

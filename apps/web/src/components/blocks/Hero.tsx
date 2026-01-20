@@ -15,6 +15,8 @@ export default function Hero() {
           speed={5}
           scale={1}
           color="#6366F1"
+          // color="#312E81"
+          // color="#8B5CF6"
           noiseIntensity={1.5}
           rotation={0}
         />

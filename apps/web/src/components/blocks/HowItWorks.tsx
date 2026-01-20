@@ -39,13 +39,13 @@ export default function HowItWorks() {
 
         <div className="grid md:grid-cols-4 gap-8 relative px-16">
           {/* Connecting Line (Desktop) */}
-          <div className="hidden md:block absolute top-12 left-32 right-40 w-9/12 h-0.5 bg-gradient-to-r from-transparent via-border to-border z-0" />
+          <div className="hidden md:block absolute top-10 left-32 right-40 w-9/12 h-0.5 bg-gradient-to-r from-transparent via-border/60 to-border/60 z-0" />
 
           {steps.map((step, index) => (
             <div key={index} className="flex flex-col items-center text-center space-y-5 z-10">
-              <div className="h-24 w-24 rounded-full border-2 border-border/50 bg-card flex items-center justify-center relative z-10">
-                <HugeiconsIcon icon={step.icon} className="h-10 w-10 text-primary" />
-                <div className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm border-4 border-background">
+              <div className="h-20 w-20 rounded-full border-2 border-border/40 bg-card flex items-center justify-center relative z-10">
+                <HugeiconsIcon icon={step.icon} className="h-8 w-8 text-primary/80" />
+                <div className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px] border-[3px] border-background">
                   {index + 1}
                 </div>
               </div>

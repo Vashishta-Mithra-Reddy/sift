@@ -158,7 +158,7 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-7xl w-full md:px-4">
-      <div className="mb-8 space-y-2">
+      <div className="mb-8 space-y-2 bg-background dark:bg-transparent rounded-xl">
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
           Manage your account settings and preferences.
@@ -167,7 +167,7 @@ export default function SettingsPage() {
 
       <Tabs 
         defaultValue="profile" 
-        className="flex flex-col md:flex-row gap-8"
+        className="flex flex-col md:flex-row gap-8 mr-0 pr-0 space-x-0 space-y-0"
         orientation="vertical"
         onValueChange={setActiveTab}
       >
@@ -205,7 +205,7 @@ export default function SettingsPage() {
           </TabsList>
         </aside>
         
-        <div className="flex-1 max-w-4xl">
+        <div className="flex-1 max-w-5xl">
           <TabsContent value="profile" className="space-y-6 mt-0">
             <Card>
               <CardHeader>

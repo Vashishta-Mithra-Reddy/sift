@@ -334,12 +334,12 @@ export default function SiftSessionPage() {
   if (viewMode === "details") {
       return (
         <div className="max-w-7xl mx-auto space-y-8 md:px-4">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
                 <Button variant="ghost" className="w-fit -ml-4 text-muted-foreground" onClick={() => router.push("/dashboard")}>
                     <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 rotate-180 mr-2" />
                     Back to Library
                 </Button>
-                <div className="space-y-2">
+                <div className="space-y-2 bg-background dark:bg-transparent rounded-xl">
                     <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{sift.source?.title}</h1>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
@@ -597,8 +597,8 @@ export default function SiftSessionPage() {
     const incorrectCount = sift.questions.length - correctCount;
 
     return (
-        <div className="h-[calc(100vh-8rem)] flex items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
-            <Card className="w-full max-w-5xl grid md:grid-cols-2 overflow-hidden border-0 ring-1 ring-border">
+        <div className="flex items-center justify-center p-0 h-full animate-in fade-in zoom-in duration-300">
+            <Card className="w-full max-w-5xl grid md:grid-cols-2 overflow-hidden border-0 ring-1 ring-border py-0">
                 {/* Left Column: Score & Chart */}
                 <div className="flex flex-col items-center justify-center p-8 md:p-12 space-y-8 text-center relative overflow-hidden">
                     <motion.div 
@@ -711,13 +711,13 @@ export default function SiftSessionPage() {
       const totalQuestions = selectedSession.answers.length;
 
       return (
-        <div className="mx-auto pb-10 space-y-8">
-            <div className="flex flex-col gap-4">
-                <Button variant="ghost" className="w-fit -ml-4 text-muted-foreground" onClick={() => setViewMode("details")}>
+        <div className="mx-auto pb-10 space-y-8 md:px-3">
+            <div className="flex flex-col gap-2">
+                <Button variant="ghost" className="w-fit -ml-4 text-muted-foreground bg-background" onClick={() => setViewMode("details")}>
                     <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 rotate-180 mr-2" />
                     Back to Details
                 </Button>
-                <div className="space-y-2">
+                <div className="space-y-2 bg-background dark:bg-transparent rounded-xl">
                     <h1 className="text-3xl font-bold tracking-tight">Session Review</h1>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
@@ -874,9 +874,9 @@ export default function SiftSessionPage() {
   const options = (currentQ?.options as string[]) || []; 
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col">
+    <div className="max-w-7xl mx-auto flex flex-col md:px-4">
       {/* Header */}
-      <div className="mb-8 space-y-4">
+      <div className="mb-2 space-y-4 bg-background dark:bg-transparent rounded-xl px-4 py-3 border border-border/0">
         <div className="flex items-center justify-between text-sm">
             <span className="font-medium text-muted-foreground truncate max-w-[200px] md:max-w-md" title={sift.source?.title}>
                 {sift.source?.title}
@@ -901,7 +901,7 @@ export default function SiftSessionPage() {
                 transition={{ duration: 0.3 }}
                 className="w-full"
             >
-                <Card className="p-6 md:p-10 min-h-[400px] flex flex-col justify-between border-border/50 bg-card/50 backdrop-blur-sm">
+                <Card className="p-6 md:p-8 md:pb-8 min-h-[400px] flex flex-col justify-between border-border/50 bg-card/50 backdrop-blur-sm">
                     <div className="space-y-8">
                         <h2 className="text-xl md:text-3xl font-bold leading-tight tracking-tight">
                             {currentQ?.question}
@@ -985,7 +985,7 @@ export default function SiftSessionPage() {
                             <motion.div 
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="space-y-4 pt-6 border-t"
+                                className="space-y-4 pt-6 border-t border-dashed"
                             >
                                 {currentQ?.explanation && (
                                     <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-xl border border-blue-100 dark:border-blue-900/50 text-sm flex gap-3">

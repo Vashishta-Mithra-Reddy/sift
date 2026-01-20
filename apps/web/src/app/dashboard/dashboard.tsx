@@ -70,7 +70,7 @@ export default function Dashboard({ session }: DashboardProps) {
 
   return (
     <div className="mx-auto space-y-8 md:px-4">
-      <div className="space-y-2">
+      <div className="space-y-2 bg-background dark:bg-transparent rounded-xl">
         <h1 className="text-3xl font-bold tracking-tight">Library</h1>
         <p className="text-muted-foreground">
             Manage your knowledge sources and start sifting.

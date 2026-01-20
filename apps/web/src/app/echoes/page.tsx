@@ -42,7 +42,7 @@ export default function EchoesPage() {
 
   return (
     <div className="mx-auto md:px-4 space-y-8">
-      <div className="space-y-2">
+      <div className="space-y-2 bg-background dark:bg-transparent rounded-xl">
         <h1 className="text-3xl font-bold tracking-tight">Echoes</h1>
         <p className="text-muted-foreground">
             Track your long-term mastery and retention.
@@ -72,7 +72,7 @@ export default function EchoesPage() {
       {echoes.length > 0 && (
         <div className="space-y-4">
             <h2 className="text-xl font-semibold">Mastery Overview</h2>
-            <ChartContainer config={chartConfig} className="min-h-[200px] max-h-[400px] w-full">
+            <ChartContainer config={chartConfig} className="min-h-[200px] max-h-[420px] w-full bg-background dark:bg-transparent rounded-xl border border-border/30 py-2 pt-6 px-2">
               <BarChart accessibilityLayer data={echoes}>
                 <CartesianGrid vertical={false} />
                 <XAxis

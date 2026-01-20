@@ -57,7 +57,7 @@ export default function SiftsPage() {
   return (
     <div className="max-w-7xl mx-auto md:px-4 space-y-8 pb-10">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-background dark:bg-transparent rounded-xl pr-3">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             {/* <HugeiconsIcon icon={FlashIcon} className="h-8 w-8 text-primary" /> */}
@@ -127,7 +127,7 @@ export default function SiftsPage() {
         ) : filteredSifts.length > 0 ? (
             // Active Sifts
             filteredSifts.map((sift) => (
-                <Card key={sift.id} className="group flex flex-col overflow-hidden border-border/50 bg-card/50 hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
+                <Card key={sift.id} className="group flex flex-col overflow-hidden border-border/30 bg-card hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-none hover:shadow-primary/5">
                     <CardHeader className="pb-3">
                         <div className="flex items-start justify-between mb-4">
                             <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:scale-105 transition-transform duration-300">

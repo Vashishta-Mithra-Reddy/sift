@@ -6,6 +6,10 @@ import { redirect } from "next/navigation";
 import Hero from "@/components/blocks/Hero";
 import Features from "@/components/blocks/Features";
 import HowItWorks from "@/components/blocks/HowItWorks";
+import FAQ from "@/components/blocks/FAQ";
+import CTA from "@/components/blocks/CTA";
+import Pricing from "@/components/blocks/Pricing";
+import Quote from "@/components/blocks/Quote";
 
 export default async function Home() {
   const requestHeaders = await headers();
@@ -56,6 +60,16 @@ export default async function Home() {
 
       <Features />
       <HowItWorks />
+      <div className="py-9">
+      <Pricing />
+      </div>
+      {/* <div className="pb-9"> */}
+      <Quote />
+      {/* </div> */}
+      <div className="py-9">
+      <FAQ />
+      </div>
+      <CTA />
     </div>
   );
 }

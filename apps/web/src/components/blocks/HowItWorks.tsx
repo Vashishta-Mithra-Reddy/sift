@@ -28,7 +28,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-16 border border-border/60 bg-background transition-colors text-card-foreground rounded-2xl">
+    <section className="py-12 border border-border/60 bg-background transition-colors text-card-foreground rounded-2xl">
       <div className="mx-auto px-4 md:px-0">
         <div className="text-center mb-16 space-y-2">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">How Sift Works</h2>
@@ -45,7 +45,7 @@ export default function HowItWorks() {
             <div key={index} className="flex flex-col items-center text-center space-y-5 z-10">
               <div className="h-20 w-20 rounded-full border-2 border-border/40 bg-card flex items-center justify-center relative z-10">
                 <HugeiconsIcon icon={step.icon} className="h-8 w-8 text-primary/80" />
-                <div className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px] border-[3px] border-background">
+                <div className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs border-[0px] border-background">
                   {index + 1}
                 </div>
               </div>

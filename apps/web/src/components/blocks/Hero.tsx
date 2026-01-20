@@ -8,7 +8,7 @@ import Silk from "@/components/Silk";
 
 export default function Hero() {
   return (
-    <section className="relative flex-1 flex flex-col items-center justify-center text-center px-6 md:px-0 py-16 md:py-36 mt-0 sm:mt-0 border rounded-2xl overflow-hidden">
+    <section className="relative flex-1 flex flex-col items-center justify-center text-center px-6 md:px-0 min-h-[73vh] mt-0 sm:mt-0 border rounded-2xl overflow-hidden">
       
       <div className="absolute inset-0 -z-10 w-full h-full dark:opacity-95">
         <Silk

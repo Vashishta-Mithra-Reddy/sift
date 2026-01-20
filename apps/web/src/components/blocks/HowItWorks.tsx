@@ -50,8 +50,8 @@ export default function HowItWorks() {
                 </div>
               </div>
               <div className="space-y-1">
-                <h3 className="text-xl font-semibold">{step.title}</h3>
-                <p className="text-muted-foreground">{step.description}</p>
+                <h3 className="text-xl font-semibold text-card-foreground">{step.title}</h3>
+                <p className="text-muted-foreground text-card-foreground">{step.description}</p>
               </div>
             </div>
           ))}

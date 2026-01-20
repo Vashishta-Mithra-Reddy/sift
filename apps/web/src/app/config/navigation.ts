@@ -3,7 +3,8 @@ import {
   BookOpen01Icon,
   FlashIcon,
   ChartHistogramIcon,
-  Settings01Icon
+  Settings01Icon,
+  AiCloud01Icon
 } from "@hugeicons/core-free-icons";
 import { type UrlObject } from "url";
 
@@ -25,6 +26,13 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     pathname: "/",
     icon: Home01Icon,
     hideOnDesktop: true,
+  },
+  {
+    key: "ai",
+    label: "AI Studio",
+    href: { pathname: "/ai" },
+    pathname: "/ai",
+    icon: AiCloud01Icon,
   },
   {
     key: "dashboard",

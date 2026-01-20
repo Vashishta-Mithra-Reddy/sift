@@ -141,8 +141,8 @@ export default function AIPage() {
   };
 
   return (
-    <div className="max-w-5xl py-6 mx-auto space-y-8">
-        <div className="space-y-2">
+    <div className="max-w-6xl py-0 pb-8 mx-auto space-y-8">
+        <div className="space-y-2 bg-background dark:bg-transparent rounded-xl">
             <h1 className="text-3xl font-bold tracking-tight">AI Studio</h1>
             <p className="text-muted-foreground">
                 Generate perfect study materials using your favorite LLM.
@@ -205,22 +205,22 @@ export default function AIPage() {
 
                         {/* Streaming Output / Plan Review */}
                         {(isPlanning || showPlanReview) && (
-                            <div className="space-y-4 pt-4 border-t">
+                            <div className="space-y-4 pt-4 border-t border-dashed">
                                 <Label>Study Plan</Label>
-                                {/* {isPlanning ? ( */}
-                                    <div contentEditable={!isPlanning} style={{ outline: 'none' }} className="py-4 px-6 rounded-lg border bg-card text-card-foreground min-h-[200px] text-sm max-h-[500px] overflow-y-auto">
+                                {isPlanning ? (
+                                    <div style={{ outline: 'none' }} className="py-4 px-6 rounded-lg border bg-card text-card-foreground min-h-[200px] text-sm max-h-[500px] overflow-y-auto">
                                         <Streamdown>
                                             {planStream || "Generating plan..."}
                                         </Streamdown>
                                     </div>
-                                {/* ) : (
+                                ) : (
                                     <Textarea 
                                         defaultValue={plan} 
                                         onChange={(e) => setPlan(e.target.value)} 
                                         className="min-h-[300px] font-mono text-sm"
                                     />
                                 )}
-                                */}
+                               
                                 
                                 {showPlanReview && (
                                     <Button onClick={handleContinueWithPlan} className="gap-2 w-full">
@@ -233,7 +233,7 @@ export default function AIPage() {
 
                         {/* Question Generation Progress */}
                         {isGeneratingQuestions && (
-                            <div className="space-y-4 pt-4 border-t">
+                            <div className="space-y-4 pt-4 border-t border-dashed">
                                 <div className="flex items-center gap-2 text-primary animate-pulse">
                                     <HugeiconsIcon icon={MagicWand01Icon} className="h-5 w-5" />
                                     <span className="font-medium">Generating Questions...</span>

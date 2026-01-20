@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useParams, useRouter } from "next/navigation";
 import { getSiftAction, completeSessionAction, batchUpdateEchoesAction, createSessionAction, saveSessionAnswersAction, getSiftSessionsAction, getSiftSessionDetailsAction, deleteSessionAction } from "./actions";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -29,9 +30,11 @@ export default function SiftSessionPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<"details" | "play" | "summary" | "review">("details");
   const [selectedSession, setSelectedSession] = useState<any>(null);
+  const [selectedHistorySession, setSelectedHistorySession] = useState<any>(null);
   
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const isStartingSession = useRef(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -43,9 +46,9 @@ export default function SiftSessionPage() {
   const [answersToSave, setAnswersToSave] = useState<{ questionId: string; userAnswer: string; isCorrect: boolean }[]>([]);
 
   // Sounds
-  const [playClick] = useSound('/audio/click.wav', { volume: 0.5 });
-  const [playSuccess] = useSound('/audio/success.mp3', { volume: 0.5 });
-  const [playNotification] = useSound('/audio/notification.wav', { volume: 0.3 });
+  const [playClick] = useSound('/audio/click.wav', { volume: 0.05 });
+  const [playSuccess] = useSound('/audio/notification.wav', { volume: 0.05 });
+  const [playNotification] = useSound('/audio/success.mp3', { volume: 0.05 });
 
   const [deletingSession, setDeletingSession] = useState<string | null>(null);
 
@@ -67,14 +70,32 @@ export default function SiftSessionPage() {
     }
   } satisfies ChartConfig;
 
+  const sessionDetailConfig = {
+    correct: {
+        label: "Correct",
+        color: "#22c55e",
+    },
+    incorrect: {
+        label: "Incorrect",
+        color: "#ef4444",
+    },
+  } satisfies ChartConfig;
+
   // Compute chart data from sessions
   const chartData = sessions
     .filter(s => s.status === "completed" && s.score !== null)
     .sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime())
-    .map(s => ({
-        date: new Date(s.completedAt).toLocaleDateString(),
-        score: s.score
-    }));
+    .map(s => {
+        const total = sift?.questions?.length || 0;
+        const correct = total > 0 ? Math.round((s.score / 100) * total) : 0;
+        return {
+            date: new Date(s.completedAt).toLocaleDateString(),
+            score: s.score,
+            correct,
+            incorrect: total - correct,
+            total
+        };
+    });
 
   const fetchSiftData = useCallback(async () => {
     try {
@@ -335,7 +356,7 @@ export default function SiftSessionPage() {
       return (
         <div className="max-w-7xl mx-auto space-y-8 md:px-4">
             <div className="flex flex-col gap-2">
-                <Button variant="ghost" className="w-fit -ml-4 text-muted-foreground" onClick={() => router.push("/dashboard")}>
+                <Button variant="ghost" className="w-fit -ml-4 text-muted-foreground bg-background" onClick={() => router.push("/dashboard")}>
                     <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 rotate-180 mr-2" />
                     Back to Library
                 </Button>
@@ -415,7 +436,20 @@ export default function SiftSessionPage() {
                                                 cursor={false} 
                                                 content={<ChartTooltipContent hideLabel />} 
                                             />
-                                            <Bar dataKey="score" fill="var(--chart-1)" radius={8} />
+                                            <Bar 
+                                                dataKey="score" 
+                                                fill="var(--chart-1)" 
+                                                radius={8} 
+                                                className="cursor-pointer hover:opacity-[0.97] transition-opacity duration-300"
+                                                onClick={(data) => {
+                                                    // Recharts passes the data object directly in the first argument for Bar onClick
+                                                    // but typically it might be the event or payload. 
+                                                    // Let's check the type. In recent Recharts, it's (data, index).
+                                                    // But strictly, we can use activePayload from tooltip or just trust the data passed.
+                                                    // Safest is to just set it if valid.
+                                                    if (data) setSelectedHistorySession(data);
+                                                }}
+                                            />
                                         </BarChart>
                                     </ChartContainer>
                                 </CardContent>
@@ -445,6 +479,74 @@ export default function SiftSessionPage() {
                                 </CardFooter>
                             </Card>
                         )}
+                        
+                        {/* Detailed Session Graph Modal */}
+                        <Dialog open={!!selectedHistorySession} onOpenChange={(open) => !open && setSelectedHistorySession(null)}>
+                            <DialogContent className="max-w-md font-jakarta">
+                                <DialogHeader className="gap-1">
+                                    <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
+                                        <HugeiconsIcon icon={ChartHistogramIcon} className="h-5 w-5" />
+                                        Session Breakdown
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        Performance details for session on {selectedHistorySession?.date}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4 flex justify-center">
+                                    {selectedHistorySession && (
+                                        <div className="relative">
+                                            <ChartContainer config={sessionDetailConfig} className="aspect-square h-[200px] w-[200px] font-jakarta">
+                                                <PieChart>
+                                                    <ChartTooltip
+                                                        cursor={false}
+                                                        content={<ChartTooltipContent hideLabel />}
+                                                    />
+                                                    <Pie
+                                                        data={[
+                                                            { name: 'correct', value: selectedHistorySession.correct, fill: "#22c55e" },
+                                                            { name: 'incorrect', value: selectedHistorySession.incorrect, fill: "#ef4444" },
+                                                        ]}
+                                                        dataKey="value"
+                                                        nameKey="name"
+                                                        innerRadius={60}
+                                                        outerRadius={80}
+                                                        strokeWidth={0}
+                                                        cornerRadius={4}
+                                                        paddingAngle={4}
+                                                    />
+                                                </PieChart>
+                                            </ChartContainer>
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                                <div className="text-center">
+                                                    <span className="text-3xl font-bold tracking-tighter block">{selectedHistorySession.score}%</span>
+                                                    <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest mt-1 block">Score</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex items-center gap-3 px-3 py-2 rounded-lg border bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30">
+                                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
+                                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium uppercase">Correct</p>
+                                            <p className="text-lg font-bold text-green-700 dark:text-green-400">{selectedHistorySession?.correct}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 px-3 py-2 rounded-lg border bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30">
+                                        <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600 dark:text-red-400">
+                                            <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium uppercase">Incorrect</p>
+                                            <p className="text-lg font-bold text-red-700 dark:text-red-400">{selectedHistorySession?.incorrect}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
 
                         <Card className="font-jakarta">
                             <CardHeader>
@@ -600,20 +702,22 @@ export default function SiftSessionPage() {
         <div className="flex items-center justify-center p-0 h-full animate-in fade-in zoom-in duration-300">
             <Card className="w-full max-w-5xl grid md:grid-cols-2 overflow-hidden border-0 ring-1 ring-border py-0">
                 {/* Left Column: Score & Chart */}
-                <div className="flex flex-col items-center justify-center p-8 md:p-12 space-y-8 text-center relative overflow-hidden">
+                <div className="flex flex-col items-center justify-center p-8 md:px-12 md:py-12 space-y-8 text-center relative overflow-hidden">
                     <motion.div 
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: "spring", bounce: 0.5 }}
-                        className="relative z-10"
+                        className="relative z-10 mb-4"
                     >
                         <div className="relative">
                             <ChartContainer config={pieChartConfig} className="aspect-square h-[240px] w-[240px]">
                                 <PieChart>
-                                    <ChartTooltip
+                                    {/* <ChartTooltip
+                                        wrapperClassName="z-[100]"
+                                        labelClassName="z-[100]"
                                         cursor={false}
                                         content={<ChartTooltipContent hideLabel />}
-                                    />
+                                    /> */}
                                     <Pie
                                         data={[
                                             { name: 'correct', value: correctCount, fill: "var(--color-correct)" },
@@ -629,7 +733,7 @@ export default function SiftSessionPage() {
                                     />
                                 </PieChart>
                             </ChartContainer>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
                                 <motion.div
                                     initial={{ y: 10, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
@@ -649,14 +753,14 @@ export default function SiftSessionPage() {
                              accuracy >= 50 ? "Good Job!" :
                              "Keep Practicing!"}
                         </h1>
-                        <p className="text-muted-foreground max-w-[250px] mx-auto">
+                        <p className="text-muted-foreground max-w-[350px] line-clamp-2 mx-auto">
                             You've completed <span className="font-semibold text-foreground">"{sift.source?.title}"</span>
                         </p>
                     </div>
                 </div>
 
                 {/* Right Column: Stats & Actions */}
-                <div className="flex flex-col p-8 md:p-12 space-y-8 bg-card">
+                <div className="flex flex-col p-8 md:pl-3 md:pr-8 md:py-8 space-y-6 bg-card">
                     <div className="flex-1 grid grid-cols-1 gap-4 content-center">
                         <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
                             <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
@@ -689,14 +793,14 @@ export default function SiftSessionPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 pt-4">
-                        <Button size="lg" onClick={() => setViewMode("details")} variant="outline" className="h-14 text-base">
-                            <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5 rotate-180 mr-2" />
+                    <div className="grid grid-cols-2 gap-4 pt-0">
+                        <Button size="lg" onClick={() => setViewMode("details")} variant="outline" className="h-12 text-base rounded-xl">
+                            <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5 rotate-180" />
                             Return
                         </Button>
-                        <Button size="lg" onClick={() => setViewMode("review")} className="h-14 text-base">
+                        <Button size="lg" onClick={() => setViewMode("review")} className="h-12 text-base rounded-xl">
                             Review
-                            <HugeiconsIcon icon={ViewIcon} className="h-5 w-5 ml-2" />
+                            {/* <HugeiconsIcon icon={ViewIcon} className="h-5 w-5 ml-2" /> */}
                         </Button>
                     </div>
                 </div>

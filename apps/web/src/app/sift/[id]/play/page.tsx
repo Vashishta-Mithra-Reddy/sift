@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSiftAction, completeSessionAction, batchUpdateEchoesAction, createSessionAction, saveSessionAnswersAction, getSiftSessionDetailsAction } from "../../actions";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, KeyboardIcon, Target02Icon, Time01Icon, ViewIcon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, KeyboardIcon, Target02Icon, Time01Icon, ViewIcon, ReloadIcon, FlashIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -29,6 +29,10 @@ export default function SiftPlayPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const startTime = useRef<number>(0);
+  const [duration, setDuration] = useState<string>("");
+  const [avgTime, setAvgTime] = useState<string>("");
   
   // Track performance locally for batch update at the end
   const [performanceData, setPerformanceData] = useState<{ topic: string, level: number }[]>([]);
@@ -69,6 +73,7 @@ export default function SiftPlayPage() {
             const newSessionId = await createSessionAction(id);
             setSessionId(newSessionId);
             setLoading(false);
+            startTime.current = Date.now();
         } catch (e) {
             console.error(e);
             toast.error("Failed to start session");
@@ -109,9 +114,10 @@ export default function SiftPlayPage() {
   }, [selectedOption, sift, currentQuestionIndex, playSuccess, playNotification]);
 
   const handleNext = useCallback(async () => {
-    if (!sift || !sift.source) return;
+    if (!sift || !sift.source || processing) return;
 
     playClick();
+    setProcessing(true);
     const currentQ = sift.questions[currentQuestionIndex];
     
     let isCorrect = false;
@@ -123,6 +129,7 @@ export default function SiftPlayPage() {
         isCorrect = selectedOption === currentQ.answer;
     }
 
+    // Update local state for accuracy
     if (isCorrect) {
         setCorrectCount(prev => prev + 1);
     }
@@ -146,15 +153,19 @@ export default function SiftPlayPage() {
         topic = currentQ.question.substring(0, 50) + (currentQ.question.length > 50 ? "..." : "");
     }
     
-    setPerformanceData(prev => [...prev, { topic, level: mastery }]);
+    const newPerformanceEntry = { topic, level: mastery };
+    setPerformanceData(prev => [...prev, newPerformanceEntry]);
 
     if (currentQuestionIndex < sift.questions.length - 1) {
        setCurrentQuestionIndex(prev => prev + 1);
        setShowAnswer(false);
        setSelectedOption(null);
+       setProcessing(false);
     } else {
        // End of session
        try {
+           // We calculate final count manually to ensure it includes the current question's result
+           // regardless of the async state update of correctCount
            const finalCorrectCount = correctCount + (isCorrect ? 1 : 0);
            const finalScore = Math.round((finalCorrectCount / sift.questions.length) * 100);
 
@@ -162,17 +173,29 @@ export default function SiftPlayPage() {
                await completeSessionAction(sessionId, finalScore);
            }
            
-           const mergedUpdates = [...performanceData, { topic, level: mastery }];
+           // Include the current question's performance data
+           const mergedUpdates = [...performanceData, newPerformanceEntry];
            await batchUpdateEchoesAction(sift.sourceId, mergedUpdates);
            
+           const timeTaken = Date.now() - startTime.current;
+           const minutes = Math.floor(timeTaken / 60000);
+           const seconds = Math.floor((timeTaken % 60000) / 1000);
+           setDuration(`${minutes}m ${seconds}s`);
+
+           const avgTimeMs = timeTaken / sift.questions.length;
+           const avgMinutes = Math.floor(avgTimeMs / 60000);
+           const avgSeconds = Math.floor((avgTimeMs % 60000) / 1000);
+           setAvgTime(`${avgMinutes}m ${avgSeconds}s`);
+
            setCompleted(true);
            playSuccess();
        } catch (error) {
            console.error("Failed to complete session", error);
            toast.error("Failed to save progress");
+           setProcessing(false); // Only reset if failed, otherwise we stay in "completed" state
        }
     }
-  }, [sift, currentQuestionIndex, selectedOption, playClick, playSuccess, performanceData, correctCount, sessionId]);
+  }, [sift, currentQuestionIndex, selectedOption, playClick, playSuccess, performanceData, correctCount, sessionId, processing]);
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -276,36 +299,57 @@ export default function SiftPlayPage() {
 
                 {/* Right Column: Stats & Actions */}
                 <div className="flex flex-col p-8 md:pl-3 md:pr-8 md:py-8 space-y-6 bg-card">
-                    <div className="flex-1 grid grid-cols-1 gap-4 content-center">
-                        <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
-                            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
-                                <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-6 w-6" />
+                    <div className="flex-1 grid grid-cols-2 gap-4 content-center">
+                        <div className="flex flex-col gap-3 p-5 rounded-2xl border bg-card/50 hover:bg-card/80 transition-colors">
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
+                                <div className="p-2 rounded-lg bg-green-500/10 text-green-600">
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-5 w-5" />
+                                </div>
+                                Correct
                             </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground font-medium">Correct Answers</p>
-                                <p className="text-2xl font-bold">{correctCount}</p>
-                            </div>
+                            <p className="text-3xl font-bold tracking-tight">{correctCount}</p>
                         </div>
                         
-                        <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
-                            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600 dark:text-red-400">
-                                <HugeiconsIcon icon={Cancel01Icon} className="h-6 w-6" />
+                        <div className="flex flex-col gap-3 p-5 rounded-2xl border bg-card/50 hover:bg-card/80 transition-colors">
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
+                                <div className="p-2 rounded-lg bg-red-500/10 text-red-600">
+                                    <HugeiconsIcon icon={Cancel01Icon} className="h-5 w-5" />
+                                </div>
+                                Incorrect
                             </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground font-medium">Incorrect Answers</p>
-                                <p className="text-2xl font-bold">{incorrectCount}</p>
-                            </div>
+                            <p className="text-3xl font-bold tracking-tight">{incorrectCount}</p>
                         </div>
 
-                        <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
-                            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
-                                <HugeiconsIcon icon={Target02Icon} className="h-6 w-6" />
+                        {/* <div className="flex flex-col gap-3 p-5 rounded-2xl border bg-card/50 hover:bg-card/80 transition-colors">
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
+                                <div className="p-2 rounded-lg bg-yellow-500/10 text-yellow-600">
+                                    <HugeiconsIcon icon={FlashIcon} className="h-5 w-5" />
+                                </div>
+                                Avg. Time
                             </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground font-medium">Total Questions</p>
-                                <p className="text-2xl font-bold">{sift.questions.length}</p>
+                            <p className="text-3xl font-bold tracking-tight">{avgTime}</p>
+                        </div> */}
+
+                        <div className="flex flex-col gap-3 p-5 rounded-2xl border bg-card/50 hover:bg-card/80 transition-colors">
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
+                                <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
+                                    <HugeiconsIcon icon={Target02Icon} className="h-5 w-5" />
+                                </div>
+                                Total Questions
                             </div>
+                            <p className="text-3xl font-bold tracking-tight">{sift.questions.length}</p>
                         </div>
+
+                        <div className="flex flex-col gap-3 p-5 rounded-2xl border bg-card/50 hover:bg-card/80 transition-colors">
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
+                                <div className="p-2 rounded-lg bg-orange-500/10 text-orange-600">
+                                    <HugeiconsIcon icon={Time01Icon} className="h-5 w-5" />
+                                </div>
+                                Total Time
+                            </div>
+                            <p className="text-3xl font-bold tracking-tight">{duration}</p>
+                        </div>
+
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 pt-0">
@@ -313,7 +357,11 @@ export default function SiftPlayPage() {
                             <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5 rotate-180" />
                             Return
                         </Button>
-                        <Button size="lg" onClick={() => router.push(`/sift/${id}?review=${sessionId}`)} className="h-12 text-base rounded-xl">
+                        <Button size="lg" onClick={() => window.location.reload()} variant="outline" className="h-12 text-base rounded-xl">
+                            <HugeiconsIcon icon={ReloadIcon} className="h-5 w-5" />
+                            Retry
+                        </Button>
+                        <Button size="lg" onClick={() => router.push(`/sift/${id}?review=${sessionId}`)} className="h-12 text-base rounded-xl col-span-2">
                             Review
                         </Button>
                     </div>
@@ -345,11 +393,11 @@ export default function SiftPlayPage() {
   const options = (currentQ?.options as string[]) || []; 
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col px-0 md:px-4">
+    <div className="max-w-7xl mx-auto flex flex-col px-2 md:px-4">
       {/* Header */}
       <div className="mb-2 space-y-4 bg-background dark:bg-transparent rounded-xl px-4 py-3 border border-border/0">
         <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-muted-foreground truncate max-w-[200px] md:max-w-md" title={sift.source?.title}>
+            <span className="font-medium text-muted-foreground truncate max-w-[150px] md:max-w-md" title={sift.source?.title}>
                 {sift.source?.title}
             </span>
             <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded-full text-xs font-medium">
@@ -362,7 +410,7 @@ export default function SiftPlayPage() {
       </div>
 
       {/* Card */}
-      <div className="flex-1 flex flex-col justify-center">
+      <div className="flex-1 flex flex-col justify-center w-full max-w-[100vw] overflow-hidden">
         <AnimatePresence mode="wait">
             <motion.div
                 key={currentQuestionIndex}
@@ -372,16 +420,16 @@ export default function SiftPlayPage() {
                 transition={{ duration: 0.3 }}
                 className="w-full"
             >
-                <Card className="p-6 md:p-8 md:pb-8 min-h-[400px] flex flex-col justify-between border-border/50 bg-card/50 backdrop-blur-sm">
-                    <div className="space-y-8">
-                        <h2 className="text-xl md:text-3xl font-bold leading-tight tracking-tight">
+                <Card className="p-4 md:p-8 md:pb-8 min-h-[400px] flex flex-col justify-between border-border/50 bg-card/50 backdrop-blur-sm">
+                    <div className="space-y-6 md:space-y-8">
+                        <h2 className="text-xl md:text-3xl font-bold leading-tight tracking-tight break-words">
                             {currentQ?.question}
                         </h2>
 
                         <div className="grid gap-3">
                             {options.length > 0 ? (
                                 options.map((option, idx) => {
-                                    let className = "relative justify-start text-left h-auto py-4 px-6 text-base font-normal transition-all duration-200 group";
+                                    let className = "relative justify-start text-left h-auto py-4 px-4 md:px-6 text-sm md:text-base font-normal transition-all duration-200 group whitespace-normal";
                                     const letter = String.fromCharCode(65 + idx);
                                     
                                     if (showAnswer) {
@@ -419,14 +467,14 @@ export default function SiftPlayPage() {
                                         >
                                             <div className="flex items-center gap-4 w-full">
                                                 <span className={cn(
-                                                    "flex items-center justify-center h-6 w-6 rounded-md border text-xs font-mono transition-colors",
+                                                    "flex items-center justify-center h-6 w-6 rounded-md border text-xs font-mono transition-colors shrink-0",
                                                     selectedOption === option ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 text-muted-foreground bg-muted/20"
                                                 )}>
                                                     {letter}
                                                 </span>
-                                                <span className="flex-1">{option}</span>
+                                                <span className="flex-1 break-words">{option}</span>
                                                 {showAnswer && (
-                                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="shrink-0">
                                                         {(() => {
                                                             let isThisCorrect = false;
                                                             if (currentQ?.correctOption) {
@@ -491,9 +539,20 @@ export default function SiftPlayPage() {
                                     size="lg" 
                                     className="w-full md:w-auto text-base h-12 px-8 gap-2 transition-all"
                                     onClick={handleNext}
+                                    disabled={processing}
                                 >
-                                    Next Question
-                                    <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5" />
+                                    {processing ? (
+                                        <>
+                                            <HugeiconsIcon icon={Loading03Icon} className="h-5 w-5 animate-spin" />
+                                            {currentQuestionIndex === sift.questions.length - 1 ? "Finishing..." : "Processing..."}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {currentQuestionIndex === sift.questions.length - 1 ? "Finish Quiz" : "Next Question"}
+                                            {currentQuestionIndex !== sift.questions.length - 1 && <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5" />}
+                                            {currentQuestionIndex === sift.questions.length - 1 && <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-5 w-5" />}
+                                        </>
+                                    )}
                                 </Button>
                             )}
                         </div>

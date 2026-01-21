@@ -26,7 +26,7 @@ export default function Footer() {
   const pathname = usePathname();
   
   // Hide footer on Sift Session page for immersive experience
-  if (pathname?.startsWith("/sift/session")) {
+  if (pathname?.startsWith("/sift")) {
     return null;
   }
 

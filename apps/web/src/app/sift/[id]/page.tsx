@@ -385,7 +385,7 @@ export default function SiftSessionPage() {
                                     <div className="p-4 rounded-xl border bg-muted/20 space-y-2">
                                         <div className="text-sm text-muted-foreground font-medium flex items-center gap-2">
                                             <HugeiconsIcon icon={HelpCircleIcon} className="h-4 w-4" />
-                                            Questions
+                                            No. of Questions
                                         </div>
                                         <div className="text-2xl md:text-3xl font-bold">
                                             {sift.questions.length}
@@ -394,7 +394,7 @@ export default function SiftSessionPage() {
                                     <div className="p-4 rounded-xl border bg-muted/20 space-y-2">
                                         <div className="text-sm text-muted-foreground font-medium flex items-center gap-2">
                                             <HugeiconsIcon icon={Time01Icon} className="h-4 w-4" />
-                                            Completed
+                                            Completed Sessions
                                         </div>
                                         <div className="text-2xl md:text-3xl font-bold">
                                             {sessions.length}
@@ -438,7 +438,7 @@ export default function SiftSessionPage() {
                                         }
                                     </CardDescription>
                                 </CardHeader>
-                                <CardContent className="h-[250px] pr-2 md:pr-4 md:h-[40vh] overflow-hidden">
+                                <CardContent className="h-[250px] pr-2 md:pr-4 md:h-[37vh] overflow-hidden">
                                     <ChartContainer className="h-full pt-6 pb-2 w-full" config={barChartConfig}>
                                         <BarChart accessibilityLayer data={chartData}>
                                             <CartesianGrid vertical={false} />
@@ -496,7 +496,7 @@ export default function SiftSessionPage() {
                                 </CardFooter>
                             </Card>
                         ) : (
-                            <Card className="font-jakarta w-full min-w-0 flex items-center justify-center p-8 text-center text-muted-foreground">
+                            <Card className="font-jakarta col-span-2 md:col-span-1 w-full min-w-0 flex items-center justify-center p-8 text-center text-muted-foreground">
                                 <div className="space-y-2">
                                     <HugeiconsIcon icon={ChartHistogramIcon} className="h-8 w-8 mx-auto opacity-50" />
                                     <p>No performance data available yet.</p>

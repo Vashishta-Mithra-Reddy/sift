@@ -7,6 +7,7 @@ import Header from "@/components/blocks/Header";
 import Providers from "@/components/providers/providers";
 import { Analytics } from "@vercel/analytics/next"
 import Footer from "@/components/blocks/Footer";
+import MobileBottomNav from "@/components/blocks/MobileBottomNav";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -55,6 +56,7 @@ export default function RootLayout({
             <main className="wrapperx">
               {children}
             </main>
+            <MobileBottomNav />
             <Footer />
           </div>
         </Providers>

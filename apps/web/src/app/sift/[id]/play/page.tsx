@@ -1,0 +1,507 @@
+"use client";
+
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { getSiftAction, completeSessionAction, batchUpdateEchoesAction, createSessionAction, saveSessionAnswersAction, getSiftSessionDetailsAction } from "../../actions";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, KeyboardIcon, Target02Icon, Time01Icon, ViewIcon } from "@hugeicons/core-free-icons";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
+import type { SiftWithQuestions } from "@sift/auth/types";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import useSound from "use-sound";
+import { Pie, PieChart } from "recharts";
+import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
+
+export default function SiftPlayPage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id as string;
+
+  const [sift, setSift] = useState<SiftWithQuestions | undefined>(undefined);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const isStartingSession = useRef(false);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [completed, setCompleted] = useState(false);
+  
+  // Track performance locally for batch update at the end
+  const [performanceData, setPerformanceData] = useState<{ topic: string, level: number }[]>([]);
+  const [correctCount, setCorrectCount] = useState(0);
+
+  // Sounds
+  const [playClick] = useSound('/audio/click.wav', { volume: 0.05 });
+  const [playSuccess] = useSound('/audio/notification.wav', { volume: 0.05 });
+  const [playNotification] = useSound('/audio/success.mp3', { volume: 0.05 });
+
+  const pieChartConfig = {
+    correct: {
+        label: "Correct",
+        color: "#22c55e",
+    },
+    incorrect: {
+        label: "Incorrect",
+        color: "#ef4444",
+    },
+  } satisfies ChartConfig;
+
+  // Initialize session
+  useEffect(() => {
+    const initSession = async () => {
+        if (isStartingSession.current) return;
+        isStartingSession.current = true;
+        
+        try {
+            const siftData = await getSiftAction(id);
+            if (!siftData) {
+                toast.error("Sift not found");
+                router.push("/dashboard");
+                return;
+            }
+            setSift(siftData);
+
+            // Create a new session
+            const newSessionId = await createSessionAction(id);
+            setSessionId(newSessionId);
+            setLoading(false);
+        } catch (e) {
+            console.error(e);
+            toast.error("Failed to start session");
+            router.push(`/sift/${id}`);
+        }
+    };
+
+    initSession();
+  }, [id, router]);
+
+  const handleOptionClick = useCallback((option: string) => {
+    if (showAnswer) return; 
+    playClick();
+    setSelectedOption(option);
+  }, [showAnswer, playClick]);
+
+  const handleCheckAnswer = useCallback(() => {
+    if (!selectedOption || !sift) return;
+    
+    setShowAnswer(true);
+    
+    // Determine correctness for sound
+    const currentQ = sift.questions[currentQuestionIndex];
+    let isCorrect = false;
+    if (currentQ.correctOption && currentQ.options) {
+        const correctIndex = currentQ.correctOption.charCodeAt(0) - 65;
+        const selectedIndex = (currentQ.options as string[]).indexOf(selectedOption);
+        isCorrect = correctIndex === selectedIndex;
+    } else {
+        isCorrect = selectedOption === currentQ.answer;
+    }
+
+    if (isCorrect) {
+        playSuccess();
+    } else {
+        playNotification(); // Error sound placeholder
+    }
+  }, [selectedOption, sift, currentQuestionIndex, playSuccess, playNotification]);
+
+  const handleNext = useCallback(async () => {
+    if (!sift || !sift.source) return;
+
+    playClick();
+    const currentQ = sift.questions[currentQuestionIndex];
+    
+    let isCorrect = false;
+    if (currentQ.correctOption && currentQ.options) {
+        const correctIndex = currentQ.correctOption.charCodeAt(0) - 65;
+        const selectedIndex = (currentQ.options as string[]).indexOf(selectedOption || "");
+        isCorrect = correctIndex === selectedIndex;
+    } else {
+        isCorrect = selectedOption === currentQ.answer;
+    }
+
+    if (isCorrect) {
+        setCorrectCount(prev => prev + 1);
+    }
+
+    // Save answer
+    if (sessionId) {
+        saveSessionAnswersAction(sessionId, [{
+            questionId: currentQ.id,
+            userAnswer: selectedOption || "",
+            isCorrect
+        }]).catch(console.error);
+    }
+
+    const mastery = isCorrect ? 100 : 0;
+    
+    // Topic Extraction
+    let topic = "General";
+    if (currentQ.tags && currentQ.tags.length > 0) {
+        topic = currentQ.tags[0];
+    } else {
+        topic = currentQ.question.substring(0, 50) + (currentQ.question.length > 50 ? "..." : "");
+    }
+    
+    setPerformanceData(prev => [...prev, { topic, level: mastery }]);
+
+    if (currentQuestionIndex < sift.questions.length - 1) {
+       setCurrentQuestionIndex(prev => prev + 1);
+       setShowAnswer(false);
+       setSelectedOption(null);
+    } else {
+       // End of session
+       try {
+           const finalCorrectCount = correctCount + (isCorrect ? 1 : 0);
+           const finalScore = Math.round((finalCorrectCount / sift.questions.length) * 100);
+
+           if (sessionId) {
+               await completeSessionAction(sessionId, finalScore);
+           }
+           
+           const mergedUpdates = [...performanceData, { topic, level: mastery }];
+           await batchUpdateEchoesAction(sift.sourceId, mergedUpdates);
+           
+           setCompleted(true);
+           playSuccess();
+       } catch (error) {
+           console.error("Failed to complete session", error);
+           toast.error("Failed to save progress");
+       }
+    }
+  }, [sift, currentQuestionIndex, selectedOption, playClick, playSuccess, performanceData, correctCount, sessionId]);
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (loading || completed || !sift) return;
+        
+        const currentQ = sift.questions?.[currentQuestionIndex];
+        if (!currentQ) return;
+        
+        const options = (currentQ?.options as string[]) || [];
+
+        if (!showAnswer) {
+            if (e.key === 'Enter' && selectedOption) {
+                handleCheckAnswer();
+            }
+            if (options.length >= 1 && (e.key === 'a' || e.key === 'A' || e.key === '1')) handleOptionClick(options[0]);
+            if (options.length >= 2 && (e.key === 'b' || e.key === 'B' || e.key === '2')) handleOptionClick(options[1]);
+            if (options.length >= 3 && (e.key === 'c' || e.key === 'C' || e.key === '3')) handleOptionClick(options[2]);
+            if (options.length >= 4 && (e.key === 'd' || e.key === 'D' || e.key === '4')) handleOptionClick(options[3]);
+        } else {
+            if (e.key === 'Enter') {
+                handleNext();
+            }
+        }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [loading, completed, sift, currentQuestionIndex, showAnswer, selectedOption, handleOptionClick, handleCheckAnswer, handleNext]);
+
+  if (loading) {
+    return (
+        <div className="flex h-screen items-center justify-center flex-col gap-4">
+            <HugeiconsIcon icon={Loading03Icon} className="h-10 w-10 animate-spin text-primary" />
+            <p className="text-muted-foreground animate-pulse">Starting session...</p>
+        </div>
+    );
+  }
+
+  if (!sift) return null;
+
+  // --- SUMMARY VIEW ---
+  if (completed) {
+    const accuracy = Math.round((correctCount / sift.questions.length) * 100);
+    const incorrectCount = sift.questions.length - correctCount;
+
+    return (
+        <div className="flex items-center justify-center h-full p-0 w-full animate-in fade-in zoom-in duration-300">
+            <Card className="w-full max-w-5xl grid md:grid-cols-2 overflow-hidden border-0 ring-1 ring-border py-0 ">
+                {/* Left Column: Score & Chart */}
+                <div className="flex flex-col items-center justify-center p-6 md:px-12 md:py-12 space-y-8 text-center relative overflow-hidden">
+                    <motion.div 
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", bounce: 0.5 }}
+                        className="relative z-10 mb-4"
+                    >
+                        <div className="relative">
+                            <ChartContainer config={pieChartConfig} className="aspect-square h-[240px] w-[240px]">
+                                <PieChart>
+                                    <Pie
+                                        data={[
+                                            { name: 'correct', value: correctCount, fill: "var(--color-correct)" },
+                                            { name: 'incorrect', value: incorrectCount, fill: "var(--color-incorrect)" },
+                                        ]}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        innerRadius={80}
+                                        outerRadius={110}
+                                        strokeWidth={0}
+                                        cornerRadius={4}
+                                        paddingAngle={2}
+                                    />
+                                </PieChart>
+                            </ChartContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
+                                <motion.div
+                                    initial={{ y: 10, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="text-center"
+                                >
+                                    <span className="text-5xl font-bold tracking-tighter block">{accuracy}%</span>
+                                    <span className="text-sm text-muted-foreground font-medium uppercase tracking-widest mt-1 block">Accuracy</span>
+                                </motion.div>
+                            </div>
+                        </div>
+                    </motion.div>
+                    
+                    <div className="space-y-2 relative z-10">
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            {accuracy >= 80 ? "Outstanding!" :
+                             accuracy >= 50 ? "Good Job!" :
+                             "Keep Practicing!"}
+                        </h1>
+                        <p className="text-muted-foreground max-w-[350px] line-clamp-2 mx-auto">
+                            You've completed <span className="font-semibold text-foreground">"{sift.source?.title}"</span>
+                        </p>
+                    </div>
+                </div>
+
+                {/* Right Column: Stats & Actions */}
+                <div className="flex flex-col p-8 md:pl-3 md:pr-8 md:py-8 space-y-6 bg-card">
+                    <div className="flex-1 grid grid-cols-1 gap-4 content-center">
+                        <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
+                            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
+                                <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground font-medium">Correct Answers</p>
+                                <p className="text-2xl font-bold">{correctCount}</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
+                            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600 dark:text-red-400">
+                                <HugeiconsIcon icon={Cancel01Icon} className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground font-medium">Incorrect Answers</p>
+                                <p className="text-2xl font-bold">{incorrectCount}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/20">
+                            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
+                                <HugeiconsIcon icon={Target02Icon} className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground font-medium">Total Questions</p>
+                                <p className="text-2xl font-bold">{sift.questions.length}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-0">
+                        <Button size="lg" onClick={() => router.push(`/sift/${id}`)} variant="outline" className="h-12 text-base rounded-xl">
+                            <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5 rotate-180" />
+                            Return
+                        </Button>
+                        <Button size="lg" onClick={() => router.push(`/sift/${id}?review=${sessionId}`)} className="h-12 text-base rounded-xl">
+                            Review
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+        </div>
+    );
+  }
+
+  // --- PLAY VIEW ---
+  const currentQ = sift.questions?.[currentQuestionIndex];
+
+  if (!currentQ) {
+    return (
+        <div className="flex items-center justify-center flex-col gap-4 md:px-4">
+            <div className="p-4 bg-primary/10 rounded-full text-primary">
+                <HugeiconsIcon icon={Loading03Icon} className="h-8 w-8 animate-spin" />
+            </div>
+            <h2 className="text-xl font-semibold">Generating Questions...</h2>
+            <p className="text-muted-foreground text-center max-w-md">
+                We're analyzing your content and generating high-quality questions. This might take a moment.
+            </p>
+            <Button variant="outline" onClick={() => window.location.reload()}>Check Again</Button>
+        </div>
+    );
+  }
+
+  const progress = ((currentQuestionIndex + 1) / sift.questions.length) * 100;
+  const options = (currentQ?.options as string[]) || []; 
+
+  return (
+    <div className="max-w-7xl mx-auto flex flex-col px-0 md:px-4">
+      {/* Header */}
+      <div className="mb-2 space-y-4 bg-background dark:bg-transparent rounded-xl px-4 py-3 border border-border/0">
+        <div className="flex items-center justify-between text-sm">
+            <span className="font-medium text-muted-foreground truncate max-w-[200px] md:max-w-md" title={sift.source?.title}>
+                {sift.source?.title}
+            </span>
+            <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded-full text-xs font-medium">
+                <span>{currentQuestionIndex + 1}</span>
+                <span className="text-muted-foreground">/</span>
+                <span className="text-muted-foreground">{sift.questions.length}</span>
+            </div>
+        </div>
+        <Progress value={progress} className="h-2 w-full transition-all duration-500" />
+      </div>
+
+      {/* Card */}
+      <div className="flex-1 flex flex-col justify-center">
+        <AnimatePresence mode="wait">
+            <motion.div
+                key={currentQuestionIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+            >
+                <Card className="p-6 md:p-8 md:pb-8 min-h-[400px] flex flex-col justify-between border-border/50 bg-card/50 backdrop-blur-sm">
+                    <div className="space-y-8">
+                        <h2 className="text-xl md:text-3xl font-bold leading-tight tracking-tight">
+                            {currentQ?.question}
+                        </h2>
+
+                        <div className="grid gap-3">
+                            {options.length > 0 ? (
+                                options.map((option, idx) => {
+                                    let className = "relative justify-start text-left h-auto py-4 px-6 text-base font-normal transition-all duration-200 group";
+                                    const letter = String.fromCharCode(65 + idx);
+                                    
+                                    if (showAnswer) {
+                                        let isThisCorrect = false;
+                                        if (currentQ?.correctOption) {
+                                            isThisCorrect = letter === currentQ.correctOption;
+                                        } else {
+                                            isThisCorrect = option === currentQ?.answer;
+                                        }
+
+                                        let isThisSelected = option === selectedOption;
+
+                                        if (isThisCorrect) {
+                                            className += " bg-green-500/10 border-green-500 text-green-800 dark:text-green-400 ring-1 ring-green-500";
+                                        } else if (isThisSelected && !isThisCorrect) {
+                                            className += " bg-red-500/10 border-red-500 text-red-700 dark:text-red-400 ring-1 ring-red-500";
+                                        } else {
+                                            className += " opacity-50 grayscale";
+                                        }
+                                    } else {
+                                        if (selectedOption === option) {
+                                            className += " border-primary bg-primary/5 ring-1 ring-primary";
+                                        } else {
+                                            className += " hover:bg-muted hover:border-primary/50";
+                                        }
+                                    }
+
+                                    return (
+                                        <Button
+                                            key={idx}
+                                            variant="outline"
+                                            className={className}
+                                            onClick={() => handleOptionClick(option)}
+                                            disabled={showAnswer}
+                                        >
+                                            <div className="flex items-center gap-4 w-full">
+                                                <span className={cn(
+                                                    "flex items-center justify-center h-6 w-6 rounded-md border text-xs font-mono transition-colors",
+                                                    selectedOption === option ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 text-muted-foreground bg-muted/20"
+                                                )}>
+                                                    {letter}
+                                                </span>
+                                                <span className="flex-1">{option}</span>
+                                                {showAnswer && (
+                                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                                                        {(() => {
+                                                            let isThisCorrect = false;
+                                                            if (currentQ?.correctOption) {
+                                                                isThisCorrect = letter === currentQ.correctOption;
+                                                            } else {
+                                                                isThisCorrect = option === currentQ?.answer;
+                                                            }
+                                                            if (isThisCorrect) return <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-5 w-5 text-green-600" />;
+                                                            if (option === selectedOption) return <HugeiconsIcon icon={Cancel01Icon} className="h-5 w-5 text-red-600" />;
+                                                            return null;
+                                                        })()}
+                                                    </motion.div>
+                                                )}
+                                            </div>
+                                        </Button>
+                                    );
+                                })
+                            ) : (
+                                <div className="p-8 border-2 border-dashed rounded-xl text-muted-foreground text-center bg-muted/20">
+                                    No options provided for this question.
+                                </div>
+                            )}
+                        </div>
+                        
+                        {showAnswer && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-4 pt-6 border-t border-dashed"
+                            >
+                                {currentQ?.explanation && (
+                                    <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-xl border border-blue-100 dark:border-blue-900/50 text-sm flex gap-3">
+                                        <HugeiconsIcon icon={HelpCircleIcon} className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                                        <div className="space-y-1">
+                                            <span className="font-semibold text-blue-700 dark:text-blue-400 block">Explanation</span>
+                                            <span className="text-blue-600/90 dark:text-blue-400/80 leading-relaxed">{currentQ.explanation}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </div>
+
+                    <div className={cn("pt-6 flex items-center justify-between", showAnswer ? "pt-4" : "")}>
+                        <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
+                            <HugeiconsIcon icon={KeyboardIcon} className="h-4 w-4" />
+                            <span>Press <kbd className="bg-muted px-1 rounded border">A-D</kbd> to select, <kbd className="bg-muted px-1 rounded border">Enter</kbd> to confirm</span>
+                        </div>
+                        
+                        <div className="flex-1 md:flex-none flex justify-end">
+                            {!showAnswer ? (
+                                <Button 
+                                    size="lg" 
+                                    className="w-full md:w-auto text-base h-12 px-8 transition-all" 
+                                    onClick={handleCheckAnswer}
+                                    disabled={!selectedOption}
+                                >
+                                    Check Answer
+                                </Button>
+                            ) : (
+                                <Button 
+                                    size="lg" 
+                                    className="w-full md:w-auto text-base h-12 px-8 gap-2 transition-all"
+                                    onClick={handleNext}
+                                >
+                                    Next Question
+                                    <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5" />
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                </Card>
+            </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}

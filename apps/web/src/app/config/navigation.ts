@@ -4,7 +4,8 @@ import {
   FlashIcon,
   ChartHistogramIcon,
   Settings01Icon,
-  AiCloud01Icon
+  AiCloud01Icon,
+  Globe02Icon
 } from "@hugeicons/core-free-icons";
 import { type UrlObject } from "url";
 
@@ -19,13 +20,20 @@ export type NavItem = {
 };
 
 export const NAVIGATION_ITEMS: NavItem[] = [
+  // {
+  //   key: "home",
+  //   label: "Home",
+  //   href: { pathname: "/" },
+  //   pathname: "/",
+  //   icon: Home01Icon,
+  //   hideOnDesktop: true,
+  // },
   {
-    key: "home",
-    label: "Home",
-    href: { pathname: "/" },
-    pathname: "/",
-    icon: Home01Icon,
-    hideOnDesktop: true,
+    key: "explore",
+    label: "Explore",
+    href: { pathname: "/explore" },
+    pathname: "/explore",
+    icon: Globe02Icon,
   },
   {
     key: "ai",
@@ -55,12 +63,12 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     pathname: "/echoes",
     icon: ChartHistogramIcon,
   },
-  {
-    key: "settings",
-    label: "Settings",
-    href: { pathname: "/settings" },
-    pathname: "/settings",
-    icon: Settings01Icon,
-    hideOnDesktop: true, // Typically in user menu on desktop
-  }
+  // {
+  //   key: "settings",
+  //   label: "Settings",
+  //   href: { pathname: "/settings" },
+  //   pathname: "/settings",
+  //   icon: Settings01Icon,
+  //   hideOnDesktop: true, // Typically in user menu on desktop
+  // }
 ];

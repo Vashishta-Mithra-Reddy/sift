@@ -6,6 +6,7 @@ import type { NewSift, SiftWithSource, SiftWithQuestions } from "../types";
 export type CreateSiftInput = {
   sourceId: string;
   config?: Record<string, any>;
+  isPublic?: boolean;
 };
 
 export type CreateQuestionInput = {
@@ -49,13 +50,24 @@ export async function addQuestionsToSift(siftId: string, questionsData: any[]) {
 
 export async function getSifts(userId: string): Promise<SiftWithSource[]> {
   const result = await db.query.sifts.findMany({
-    where: eq(sifts.userId, userId),
+    where: and(eq(sifts.userId, userId), eq(sifts.isArchived, false)),
     orderBy: desc(sifts.createdAt),
     with: {
         source: true
     }
   });
   return result as SiftWithSource[];
+}
+
+export async function getArchivedSifts(userId: string): Promise<SiftWithSource[]> {
+    const result = await db.query.sifts.findMany({
+      where: and(eq(sifts.userId, userId), eq(sifts.isArchived, true)),
+      orderBy: desc(sifts.createdAt),
+      with: {
+          source: true
+      }
+    });
+    return result as SiftWithSource[];
 }
 
 export async function getSift(id: string): Promise<SiftWithQuestions | undefined> {
@@ -69,8 +81,23 @@ export async function getSift(id: string): Promise<SiftWithQuestions | undefined
   return result as SiftWithQuestions | undefined;
 }
 
+export async function getPublicSifts(): Promise<SiftWithSource[]> {
+    const result = await db.query.sifts.findMany({
+      where: and(eq(sifts.isPublic, true), eq(sifts.isArchived, false)),
+      orderBy: desc(sifts.createdAt),
+      with: {
+          source: true
+      }
+    });
+    return result as SiftWithSource[];
+}
+
 export async function updateSift(id: string, data: Partial<NewSift>) {
   await db.update(sifts).set(data).where(eq(sifts.id, id));
+}
+
+export async function deleteSift(id: string) {
+    await db.delete(sifts).where(eq(sifts.id, id));
 }
 
 // --- Session Queries ---

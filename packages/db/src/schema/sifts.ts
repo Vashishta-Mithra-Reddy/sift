@@ -12,9 +12,9 @@ export const sifts = pgTable("sifts", {
   sourceId: text("source_id")
     .notNull()
     .references(() => sources.id, { onDelete: "cascade" }),
-  // score here are deprecated, moving to sift_sessions
-  // score: integer("score"),
   status: siftStatusEnum("status").default("in_progress").notNull(), 
+  isPublic: boolean("is_public").default(false).notNull(),
+  isArchived: boolean("is_archived").default(false).notNull(),
   config: jsonb("config"), // { depth: 'deep', format: 'flashcard' }
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")

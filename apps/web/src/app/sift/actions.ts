@@ -1,12 +1,34 @@
 "use server";
 
-import { getSift, createSiftSession, updateSiftSession, addSessionAnswers, getSiftSessions, getSiftSessionDetails, deleteSiftSession } from "@sift/auth/actions/sifts";
+import { getSift, createSiftSession, updateSiftSession, addSessionAnswers, getSiftSessions, getSiftSessionDetails, deleteSiftSession, updateSift, deleteSift } from "@sift/auth/actions/sifts";
 import { updateEchoMastery, batchUpdateEchoesAction as batchUpdateEchoes } from "@sift/auth/actions/echoes";
 import { headers } from "next/headers";
+import type { NewSift } from "@sift/auth/types";
+import { auth } from "@sift/auth";
 
 export async function getSiftAction(id: string) {
     const headerStore = await headers();
-    return await getSift(id, headerStore);
+    const sift = await getSift(id, headerStore);
+    if (!sift) return null;
+
+    const session = await auth.api.getSession({
+        headers: headerStore
+    });
+    
+    return {
+        ...sift,
+        isOwner: session?.user?.id === sift.userId
+    };
+}
+
+export async function updateSiftAction(id: string, data: Partial<NewSift>) {
+    const headerStore = await headers();
+    await updateSift(id, data, headerStore);
+}
+
+export async function deleteSiftAction(id: string) {
+    const headerStore = await headers();
+    await deleteSift(id, headerStore);
 }
 
 export async function getSiftSessionsAction(siftId: string) {

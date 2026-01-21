@@ -4,6 +4,9 @@ import {
     getSifts as dbGetSifts, 
     getSift as dbGetSift, 
     updateSift as dbUpdateSift,
+    getPublicSifts as dbGetPublicSifts,
+    getArchivedSifts as dbGetArchivedSifts,
+    deleteSift as dbDeleteSift,
     createSiftSession as dbCreateSiftSession,
     updateSiftSession as dbUpdateSiftSession,
     addSessionAnswers as dbAddSessionAnswers,
@@ -58,22 +61,69 @@ export async function getSifts(headers: Headers): Promise<SiftWithSource[]> {
   return await dbGetSifts(session.user.id);
 }
 
+export async function getArchivedSifts(headers: Headers): Promise<SiftWithSource[]> {
+    const session = await auth.api.getSession({
+      headers,
+    });
+  
+    if (!session?.user) {
+      throw new Error("Unauthorized");
+    }
+  
+    return await dbGetArchivedSifts(session.user.id);
+}
+
 export async function getSift(id: string, headers: Headers): Promise<SiftWithQuestions | undefined> {
   const session = await auth.api.getSession({
     headers,
   });
 
+  // Allow public access, but we still need a session for some features maybe?
+  // Actually, if it's public, maybe we don't need a session?
+  // For now, let's assume user must be logged in to view even public sifts to play them (since sessions are tied to users)
+  
   if (!session?.user) {
     throw new Error("Unauthorized");
   }
 
   const sift = await dbGetSift(id);
   
-  if (sift && sift.userId !== session.user.id) {
+  if (sift && sift.userId !== session.user.id && !sift.isPublic) {
     throw new Error("Unauthorized");
   }
 
   return sift;
+}
+
+export async function getPublicSifts(headers: Headers): Promise<SiftWithSource[]> {
+    const session = await auth.api.getSession({
+        headers,
+    });
+
+    if (!session?.user) {
+        throw new Error("Unauthorized");
+    }
+
+    return await dbGetPublicSifts();
+}
+
+export async function deleteSift(id: string, headers: Headers) {
+    const session = await auth.api.getSession({
+        headers,
+    });
+
+    if (!session?.user) {
+        throw new Error("Unauthorized");
+    }
+
+    const sift = await dbGetSift(id);
+    if (!sift) return;
+
+    if (sift.userId !== session.user.id) {
+        throw new Error("Unauthorized");
+    }
+
+    await dbDeleteSift(id);
 }
 
 export async function updateSift(id: string, data: Partial<NewSift>, headers: Headers) {

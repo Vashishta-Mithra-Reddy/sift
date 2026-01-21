@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function CTA() {
   return (
-    <section className="px-4 md:px-0">
+    <section className="px-4 md:px-0 pb-2">
       <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-card/50 backdrop-blur-sm p-8 md:p-9">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
             <div className="space-y-2 max-w-2xl text-center md:text-left">

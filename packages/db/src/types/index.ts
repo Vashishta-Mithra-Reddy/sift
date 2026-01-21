@@ -32,5 +32,6 @@ export type NewEcho = InferInsertModel<typeof ech.echoes>;
 
 export type SiftWithSource = Sift & { source: Source };
 export type SiftWithQuestions = Sift & { questions: Question[]; source: Source | null };
+export type SourceWithSifts = Source & { sifts: Sift[] };
 
 

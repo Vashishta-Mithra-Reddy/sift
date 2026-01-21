@@ -1,7 +1,7 @@
 import { db } from "..";
 import { sources } from "../schema/sources";
 import { eq, desc } from "drizzle-orm";
-import type { Source, NewSource, SourceType } from "../types";
+import type { Source, NewSource, SourceType, SourceWithSifts } from "../types";
 
 export type CreateSourceInput = {
   title: string;
@@ -24,11 +24,15 @@ export async function createSource(userId: string, data: CreateSourceInput) {
   return id;
 }
 
-export async function getSources(userId: string): Promise<Source[]> {
-  return await db.query.sources.findMany({
+export async function getSources(userId: string): Promise<SourceWithSifts[]> {
+  const result = await db.query.sources.findMany({
     where: eq(sources.userId, userId),
     orderBy: desc(sources.createdAt),
+    with: {
+        sifts: true
+    }
   });
+  return result as SourceWithSifts[];
 }
 
 export async function getSource(id: string): Promise<Source | undefined> {

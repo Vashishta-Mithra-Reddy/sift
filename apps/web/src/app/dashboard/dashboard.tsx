@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SourceUploader } from "@/components/media/source-uploader";
 import { getSourcesAction, deleteSourceAction } from "@/app/dashboard/actions";
-import type { Source } from "@sift/auth/types";
+import type { SourceWithSifts } from "@sift/auth/types";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { File01Icon, Delete01Icon, BookOpen01Icon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
@@ -12,16 +12,29 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DashboardProps {
   session: typeof authClient.$Infer.Session;
+  initialSources: SourceWithSifts[];
 }
 
-export default function Dashboard({ session }: DashboardProps) {
+export default function Dashboard({ session, initialSources }: DashboardProps) {
   const router = useRouter();
-  const [sources, setSources] = useState<Source[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [sources, setSources] = useState<SourceWithSifts[]>(initialSources);
+  const [loading, setLoading] = useState(false);
   const [creatingSift, setCreatingSift] = useState<string | null>(null);
+  const [sourceToDelete, setSourceToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchSources = async () => {
     try {
@@ -29,37 +42,34 @@ export default function Dashboard({ session }: DashboardProps) {
         setSources(data);
     } catch (e) {
         console.error(e);
-    } finally {
-        setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchSources();
-  }, []);
-
-  const handleDelete = async (id: string) => {
+  const confirmDelete = async () => {
+    if (!sourceToDelete) return;
+    setIsDeleting(true);
     try {
-        await deleteSourceAction(id);
+        await deleteSourceAction(sourceToDelete);
         toast.success("Source deleted");
         fetchSources();
     } catch (e) {
         toast.error("Failed to delete source");
+    } finally {
+        setIsDeleting(false);
+        setSourceToDelete(null);
     }
   };
   
   const handleSift = async (sourceId: string) => {
-      // In a real app, this would trigger AI generation.
-      // For now, since we only have "Import" working fully end-to-end with questions,
-      // we'll just show a toast or redirect to a placeholder if it's not an imported source.
-      
       const source = sources.find(s => s.id === sourceId);
       
-      // If it's pasted/imported content, it likely already has questions or is ready for the simple flow.
-      // In our current implementation, "Imported" sources via AI Studio set isPasted=true.
-      // We assume these are ready to be "sifted" (or already have a sift).
+      if (source?.sifts && source.sifts.length > 0) {
+          router.push(`/sift/${source.sifts[0].id}`);
+          return;
+      }
+
       if (source?.isPasted) {
-          // Redirect to Sifts page to resume/start the session
+          // Fallback if no specific sift found but marked as pasted/ready
           router.push("/sifts");
       } else {
           toast.info("AI Generation coming soon!", {
@@ -70,6 +80,36 @@ export default function Dashboard({ session }: DashboardProps) {
 
   return (
     <div className="mx-auto space-y-8 md:px-4">
+      <AlertDialog open={!!sourceToDelete} onOpenChange={(open) => !open && setSourceToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="w-full flex flex-col justify-center items-center gap-2">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+                    <HugeiconsIcon icon={Delete01Icon} className="h-6 w-6 text-red-600 dark:text-red-400" />
+                </div>
+                <AlertDialogTitle className="text-lg font-semibold">Delete Source?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-center text-balance flex flex-col items-center justify-center w-full">
+              This will permanently delete this source and all associated sifts. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting && <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="space-y-2 bg-background dark:bg-transparent rounded-xl">
         <h1 className="text-3xl font-bold tracking-tight">Library</h1>
         <p className="text-muted-foreground">
@@ -91,7 +131,7 @@ export default function Dashboard({ session }: DashboardProps) {
                             variant="ghost" 
                             size="icon" 
                             className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDelete(source.id)}
+                            onClick={() => setSourceToDelete(source.id)}
                         >
                             <HugeiconsIcon icon={Delete01Icon} className="h-4 w-4" />
                         </Button>

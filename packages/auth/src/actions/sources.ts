@@ -1,6 +1,6 @@
 import { createSource as dbCreateSource, getSources as dbGetSources, getSource as dbGetSource, deleteSource as dbDeleteSource, type CreateSourceInput } from "@sift/db/queries/sources";
 import { auth } from "../index";
-import type { Source } from "@sift/db/types";
+import type { Source, SourceWithSifts } from "@sift/db/types";
 
 export async function createSource(data: CreateSourceInput, headers: Headers): Promise<string> {
   const session = await auth.api.getSession({
@@ -14,7 +14,7 @@ export async function createSource(data: CreateSourceInput, headers: Headers): P
   return await dbCreateSource(session.user.id, data);
 }
 
-export async function getSources(headers: Headers): Promise<Source[]> {
+export async function getSources(headers: Headers): Promise<SourceWithSifts[]> {
   const session = await auth.api.getSession({
     headers,
   });

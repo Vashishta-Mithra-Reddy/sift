@@ -283,7 +283,7 @@ export default function SiftSessionPage() {
                     {/* Stats & Charts Row */}
                     <div className="grid md:grid-cols-2 gap-8 w-full min-w-0">
                             {/* Quiz Insights */}
-                            <Card className="font-jakarta w-full min-w-0">
+                            <Card className="font-jakarta w-full min-w-0 col-span-2 md:col-span-1">
                             <CardHeader className="min-w-0">
                                 <CardTitle className="text-xl flex items-center gap-2 min-w-0">
                                     <HugeiconsIcon icon={StarIcon} className="h-5 w-5 text-primary" />
@@ -294,15 +294,15 @@ export default function SiftSessionPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6 mt-2">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     
-                                    <div className="col-span-1 sm:col-span-2 p-4 rounded-xl border bg-muted/20 space-y-2">
+                                    <div className="col-span-2 p-4 rounded-xl border bg-muted/20 space-y-2">
                                         <div className="text-sm text-muted-foreground font-medium flex items-center gap-2">
                                             <HugeiconsIcon icon={TrendingUp} className="h-4 w-4" />
                                             Current Proficiency
                                         </div>
                                         <div className="flex items-end gap-3 flex-wrap">
-                                            <div className="text-3xl font-bold flex items-center gap-2">
+                                            <div className="text-2xl md:text-3xl font-bold flex items-center gap-2">
                                                 {(() => {
                                                     if (sessions.length === 0) return "Beginner";
                                                     const avg = Math.round(sessions.reduce((acc, s) => acc + (s.score || 0), 0) / sessions.length);
@@ -355,7 +355,7 @@ export default function SiftSessionPage() {
                                             <HugeiconsIcon icon={Target02Icon} className="h-4 w-4" />
                                             Avg. Score
                                         </div>
-                                        <div className="text-3xl font-bold">
+                                        <div className="text-2xl md:text-3xl font-bold">
                                             {sessions.length > 0 
                                                 ? Math.round(sessions.reduce((acc, s) => acc + (s.score || 0), 0) / sessions.length)
                                                 : 0}%
@@ -366,7 +366,7 @@ export default function SiftSessionPage() {
                                             <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4" />
                                             Best Streak
                                         </div>
-                                        <div className="text-3xl font-bold">
+                                        <div className="text-2xl md:text-3xl font-bold">
                                             {(() => {
                                                 let maxStreak = 0;
                                                 let currentStreak = 0;
@@ -387,7 +387,7 @@ export default function SiftSessionPage() {
                                             <HugeiconsIcon icon={HelpCircleIcon} className="h-4 w-4" />
                                             Questions
                                         </div>
-                                        <div className="text-3xl font-bold">
+                                        <div className="text-2xl md:text-3xl font-bold">
                                             {sift.questions.length}
                                         </div>
                                     </div>
@@ -396,7 +396,7 @@ export default function SiftSessionPage() {
                                             <HugeiconsIcon icon={Time01Icon} className="h-4 w-4" />
                                             Completed
                                         </div>
-                                        <div className="text-3xl font-bold">
+                                        <div className="text-2xl md:text-3xl font-bold">
                                             {sessions.length}
                                         </div>
                                     </div>
@@ -425,7 +425,7 @@ export default function SiftSessionPage() {
 
                         {/* Performance Chart */}
                         {chartData.length > 0 ? (
-                            <Card className="font-jakarta w-full min-w-0">
+                            <Card className="font-jakarta w-full min-w-0 col-span-2 md:col-span-1">
                                 <CardHeader className="min-w-0">
                                     <CardTitle className="text-xl flex items-center gap-2 min-w-0">
                                         <HugeiconsIcon icon={ChartHistogramIcon} className="h-5 w-5" />
@@ -438,7 +438,7 @@ export default function SiftSessionPage() {
                                         }
                                     </CardDescription>
                                 </CardHeader>
-                                <CardContent className="h-[250px] md:h-[40vh] overflow-hidden">
+                                <CardContent className="h-[250px] pr-2 md:pr-4 md:h-[40vh] overflow-hidden">
                                     <ChartContainer className="h-full pt-6 pb-2 w-full" config={barChartConfig}>
                                         <BarChart accessibilityLayer data={chartData}>
                                             <CartesianGrid vertical={false} />

@@ -65,6 +65,10 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
     try {
         const { siftId } = await createTextSourceAction(title, pastedText);
         toast.success("Content saved and session created");
+        
+        // Wait briefly for eventual consistency before redirecting
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         setPastedText("");
         setTitle("");
         onUploadComplete?.();

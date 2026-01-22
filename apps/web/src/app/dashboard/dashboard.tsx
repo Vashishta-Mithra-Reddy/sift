@@ -121,7 +121,7 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {sources.map((source) => (
-            <Card key={source.id} className="p-4 flex flex-col justify-between gap-4 group hover:border-primary/50 transition-colors">
+            <Card key={source.id} className="p-4 bg-background flex flex-col justify-between gap-4 group hover:border-primary/50 transition-colors">
                 <div className="space-y-3">
                     <div className="flex items-start justify-between">
                         <div className="p-2 bg-primary/10 rounded-lg text-primary">

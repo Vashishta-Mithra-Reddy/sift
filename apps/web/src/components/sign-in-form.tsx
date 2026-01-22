@@ -67,7 +67,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
             Sign in to continue your active recall journey
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 px-6 py-4">
+        <CardContent className="space-y-4 px-6 pt-4">
           
           <form
             onSubmit={(e) => {

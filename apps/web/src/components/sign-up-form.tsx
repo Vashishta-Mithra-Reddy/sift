@@ -70,7 +70,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
             Enter your email below to create your account
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 px-6 py-4">
+        <CardContent className="space-y-4 px-6 pb-4">
           
           <form
             onSubmit={(e) => {

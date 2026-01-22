@@ -127,7 +127,7 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
                     )}
                 </div>
                 <div className="space-y-1">
-                <p className="text-sm font-medium">
+                <p className="text-base font-medium">
                     {isDragActive ? "Drop to sift..." : "Drop your notes here"}
                 </p>
                 <p className="text-xs text-muted-foreground">

@@ -160,7 +160,7 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
         ))}
         
         {!loading && sources.length === 0 && (
-            <div className="col-span-full text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl font-jakarta">
+            <div className="col-span-full bg-background text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl font-jakarta">
                 No sources yet. Upload one to get started.
             </div>
         )}

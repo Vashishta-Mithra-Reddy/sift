@@ -32,7 +32,7 @@ export default function Footer() {
 
   return (
     <footer className="pt-0 pb-20 md:pb-8 font-jakarta">
-      <div className="mx-auto max-w-7xl bg-foreground/5 px-8 py-8 sm:rounded-xl backdrop-blur border border-foreground/5 bg-white/80 dark:bg-background/75 text-sm text-zinc-700 dark:text-zinc-300">
+      <div className="hidden md:flex md:flex-col mx-auto max-w-7xl bg-foreground/5 px-8 py-8 sm:rounded-xl backdrop-blur border border-foreground/5 bg-white/80 dark:bg-background/75 text-sm text-zinc-700 dark:text-zinc-300">
         <div className="hidden sm:flex items-center justify-between gap-4 border-b-2 border-dashed pb-4">
           <div className="text-base font-medium flex items-center gap-4">
             <div className="flex flex-col">

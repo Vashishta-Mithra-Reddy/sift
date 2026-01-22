@@ -11,6 +11,8 @@ export default function MobileBottomNav() {
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
   
+  if (pathname.includes("/sift/")) return null;
+
   // Show all items for now, role based filtering later if needed
   const filteredNavItems = NAVIGATION_ITEMS.filter((item) => {
     return true; 

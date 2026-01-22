@@ -60,12 +60,12 @@ export default async function Home() {
 
       <Features />
       <HowItWorks />
-      <div className="py-9">
+      {/* <div className="py-9">
       <Pricing />
-      </div>
-      {/* <div className="pb-9"> */}
+      </div> */}
+      <div className="pt-9">
       <Quote />
-      {/* </div> */}
+      </div>
       <div className="py-9">
       <FAQ />
       </div>

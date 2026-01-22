@@ -212,7 +212,7 @@ export default function SiftSessionPage() {
                                 <HugeiconsIcon icon={MoreVerticalIcon} className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="w-fit">
                             <DropdownMenuItem onClick={handleToggleVisibility}>
                                 {sift.isPublic ? (
                                     <>
@@ -226,15 +226,16 @@ export default function SiftSessionPage() {
                                     </>
                                 )}
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setIsDeletingSift(true)}>
-                                <HugeiconsIcon icon={Delete01Icon} className="mr-2 h-4 w-4" />
-                                Delete Sift
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={handleToggleArchive}>
                                 <HugeiconsIcon icon={Archive02Icon} className="mr-2 h-4 w-4" />
                                 {sift.isArchived ? "Unarchive Sift" : "Archive Sift"}
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setIsDeletingSift(true)}>
+                                <HugeiconsIcon icon={Delete01Icon} className="mr-2 h-4 w-4" />
+                                Delete Sift
+                            </DropdownMenuItem>
+                            
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}

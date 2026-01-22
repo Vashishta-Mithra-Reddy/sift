@@ -145,23 +145,26 @@ export default function AIPage() {
         <div className="space-y-2 bg-background dark:bg-transparent rounded-xl">
             <h1 className="text-3xl font-bold tracking-tight">AI Studio</h1>
             <p className="text-muted-foreground">
-                Generate perfect study materials using your favorite LLM.
+                Generate study materials using an LLM.
             </p>
         </div>
 
         <Tabs defaultValue="generate" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-3 h-auto">
                 <TabsTrigger value="generate" className="gap-2">
                     <HugeiconsIcon icon={FlashIcon} className="h-4 w-4" />
-                    Direct Generate
+                    <span className="hidden sm:inline">Direct Generate</span>
+                    <span className="inline sm:hidden">Generate</span>
                 </TabsTrigger>
                 <TabsTrigger value="prompt" className="gap-2">
                     <HugeiconsIcon icon={MagicWand01Icon} className="h-4 w-4" />
-                    Get Prompt
+                    <span className="hidden sm:inline">Get Prompt</span>
+                    <span className="inline sm:hidden">Prompt</span>
                 </TabsTrigger>
                 <TabsTrigger value="import" className="gap-2">
                     <HugeiconsIcon icon={Upload01Icon} className="h-4 w-4" />
-                    Import JSON
+                    <span className="hidden sm:inline">Import JSON</span>
+                    <span className="inline sm:hidden">Import</span>
                 </TabsTrigger>
             </TabsList>
 

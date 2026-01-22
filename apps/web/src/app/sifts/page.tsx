@@ -129,9 +129,11 @@ export default function SiftsPage() {
                                 <HugeiconsIcon icon={FlashIcon} className="h-6 w-6" />
                             </div>
                         </div>
-                        <CardTitle className="line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+                        <Link href={`/sift/${sift.id}`} className="block">
+                        <CardTitle className="line-clamp-2 leading-tight group-hover:text-primary hover:underline transition-colors">
                             {sift.source?.title || "Untitled Source"}
                         </CardTitle>
+                        </Link>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
                             <HugeiconsIcon icon={Time01Icon} className="h-3 w-3" />
                             <span>Started {formatDistanceToNow(new Date(sift.createdAt), { addSuffix: true })}</span>
@@ -143,7 +145,7 @@ export default function SiftsPage() {
 
                     <CardFooter className="p-0">
                         <Link href={`/sift/${sift.id}`} className="w-full h-full px-4 py-3 flex items-center justify-center gap-2 transition-all duration-300">
-                                {sift.status === 'in_progress' ? 'Resume Session' : 'Review Session'}
+                                {sift.status === 'in_progress' ? 'Load Sift' : 'Review Session'}
                                 <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 group-hover:translate-x-0.5 transition-transform duration-300" />
                         </Link>
                     </CardFooter>

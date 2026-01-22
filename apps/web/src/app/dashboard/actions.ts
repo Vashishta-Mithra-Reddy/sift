@@ -2,6 +2,10 @@
 
 import { createSource, getSources, deleteSource } from "@sift/auth/actions/sources";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
+
+import { createSift, addQuestions } from "@sift/auth/actions/sifts";
+import { processSiftContent } from "@/lib/content-processor";
 
 export async function uploadSourceAction(formData: FormData) {
   const file = formData.get("file") as File;
@@ -10,7 +14,7 @@ export async function uploadSourceAction(formData: FormData) {
   const text = await file.text(); // Basic text extraction for now
   const headerStore = await headers();
 
-  await createSource({
+  const sourceId = await createSource({
     title: file.name,
     fileName: file.name,
     type: "text", // Auto-detect later
@@ -21,9 +25,26 @@ export async function uploadSourceAction(formData: FormData) {
         type: file.type
     }
   }, headerStore);
-}
 
-import { processSiftContent } from "@/lib/content-processor";
+  // Create Sift
+  const siftId = await createSift({
+      sourceId,
+      config: {
+          method: "upload" 
+      }
+  }, headerStore);
+
+  // Trigger Async Processing (Fire and Forget)
+  (async () => {
+      try {
+          await processSiftContent(siftId, text);
+      } catch (e) {
+          console.error("Background processing failed", e);
+      }
+  })();
+
+  return { sourceId, siftId };
+}
 
 export async function createTextSourceAction(title: string, content: string) {
     const headerStore = await headers();
@@ -61,8 +82,6 @@ export async function createTextSourceAction(title: string, content: string) {
     return { sourceId, siftId };
 }
 
-import { createSift, addQuestions } from "@sift/auth/actions/sifts";
-
 export async function createImportedSourceAction(title: string, questions: any[]) {
     const headerStore = await headers();
     
@@ -99,5 +118,7 @@ export async function getSourcesAction() {
 
 export async function deleteSourceAction(id: string) {
     const headerStore = await headers();
-    return await deleteSource(id, headerStore);
+    await deleteSource(id, headerStore);
+    revalidatePath("/dashboard");
+    return { success: true };
 }

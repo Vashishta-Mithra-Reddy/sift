@@ -39,9 +39,10 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
     try {
         const formData = new FormData();
         formData.append("file", file);
-        await uploadSourceAction(formData);
+        const { siftId } = await uploadSourceAction(formData);
         toast.success(`Uploaded ${file.name}`);
         onUploadComplete?.();
+        router.push(`/sift/${siftId}`);
     } catch (error) {
         console.error(error);
         toast.error("Failed to upload file");
@@ -107,7 +108,7 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
             <div
                 {...getRootProps()}
                 className={cn(
-                "relative border-2 bg-card/80 border-dashed rounded-xl p-8 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-4 h-[300px]",
+                "relative border-2 bg-card border-dashed rounded-xl p-8 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-4 h-[300px]",
                 isDragActive 
                     ? "border-primary bg-card scale-[0.99]" 
                     : "border-border hover:border-primary/50 hover:bg-card",

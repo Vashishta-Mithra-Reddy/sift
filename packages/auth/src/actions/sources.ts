@@ -61,5 +61,6 @@ export async function deleteSource(id: string, headers: Headers) {
         throw new Error("Unauthorized");
     }
   
-    return await dbDeleteSource(id);
+    await dbDeleteSource(id);
+    return { success: true };
   }

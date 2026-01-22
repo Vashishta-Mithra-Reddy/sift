@@ -84,6 +84,40 @@ export default function SiftPlayPage() {
     initSession();
   }, [id, router]);
 
+  // Server-Sent Events (SSE) for real-time updates
+  useEffect(() => {
+    if (loading || !sift || (sift.questions && sift.questions.length > 0)) return;
+
+    const eventSource = new EventSource(`/api/sift/${id}/status`);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.status === "ready") {
+          toast.success("Questions ready!");
+          // Reload to fetch the full data with questions
+          // We could also pass the data in the event, but reloading ensures full state consistency
+          // or re-fetch via action
+          getSiftAction(id).then(data => {
+             if (data) setSift(data);
+          });
+          eventSource.close();
+        }
+      } catch (e) {
+        console.error("SSE Parse Error", e);
+      }
+    };
+
+    eventSource.onerror = (e) => {
+        console.error("SSE Error", e);
+        eventSource.close();
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [id, loading, sift]);
+
   const handleOptionClick = useCallback((option: string) => {
     if (showAnswer) return; 
     playClick();
@@ -376,12 +410,12 @@ export default function SiftPlayPage() {
 
   if (!currentQ) {
     return (
-        <div className="flex items-center justify-center flex-col gap-4 md:px-4">
-            <div className="p-4 bg-primary/10 rounded-full text-primary">
+        <div className="h-full flex items-center justify-center flex-col gap-4 md:px-4">
+            <div className="p-4 bg-background border rounded-full text-primary">
                 <HugeiconsIcon icon={Loading03Icon} className="h-8 w-8 animate-spin" />
             </div>
-            <h2 className="text-xl font-semibold">Generating Questions...</h2>
-            <p className="text-muted-foreground text-center max-w-md">
+            <h2 className="text-xl font-semibold bg-background">Generating Questions...</h2>
+            <p className="text-muted-foreground text-center max-w-md bg-background">
                 We're analyzing your content and generating high-quality questions. This might take a moment.
             </p>
             <Button variant="outline" onClick={() => window.location.reload()}>Check Again</Button>

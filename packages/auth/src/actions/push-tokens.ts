@@ -1,4 +1,4 @@
-import { createPushToken, deletePushToken } from "@sift/db/queries/push-tokens";
+import { createPushToken, deletePushToken, getPushTokens } from "@sift/db/queries/push-tokens";
 import { auth } from "../index";
 
 export async function registerPushToken(
@@ -29,4 +29,18 @@ export async function removePushToken(
   }
 
   return await deletePushToken(session.user.id, token);
+}
+
+export async function getUserPushTokens(
+  headers: Headers
+) {
+  const session = await auth.api.getSession({
+    headers: headers,
+  });
+
+  if (!session?.user) {
+    throw new Error("Unauthorized");
+  }
+
+  return await getPushTokens(session.user.id);
 }

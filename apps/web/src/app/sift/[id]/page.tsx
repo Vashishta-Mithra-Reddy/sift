@@ -76,7 +76,11 @@ export default function SiftSessionPage() {
             getSiftSessionsAction(id)
         ]);
         
-        if (!siftData) return;
+        if (!siftData) {
+            // Don't redirect automatically, let the user decide.
+            // This prevents race conditions where the Sift exists but isn't immediately readable.
+            return;
+        }
         setSift(siftData);
         setSessions(sessionsData);
         

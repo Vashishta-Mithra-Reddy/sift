@@ -71,21 +71,34 @@ export default function SiftSessionPage() {
 
   const fetchSiftData = useCallback(async () => {
     try {
-        const [siftData, sessionsData] = await Promise.all([
-            getSiftAction(id),
-            getSiftSessionsAction(id)
-        ]);
+        console.log("Fetching Sift Data for ID:", id);
+        let attempts = 0;
         
-        if (!siftData) {
-            // Don't redirect automatically, let the user decide.
-            // This prevents race conditions where the Sift exists but isn't immediately readable.
-            return;
+        // Retry loop (max 3 attempts, 1s interval) to handle eventual consistency
+        while (attempts < 3) {
+            const [siftData, sessionsData] = await Promise.all([
+                getSiftAction(id),
+                getSiftSessionsAction(id)
+            ]);
+            
+            if (siftData) {
+                console.log("Sift Found:", siftData.id);
+                setSift(siftData);
+                setSessions(sessionsData);
+                return; // Success
+            }
+            
+            console.log(`Sift not found, attempt ${attempts + 1}/3`);
+            attempts++;
+            if (attempts < 3) await new Promise(r => setTimeout(r, 1000));
         }
-        setSift(siftData);
-        setSessions(sessionsData);
+        
+        console.warn("Sift not found after all retries");
+        // If we reach here, we didn't find it after retries.
+        // We do NOT redirect. We let the UI show the Not Found state.
         
     } catch (e) {
-        console.error(e);
+        console.error("Fetch Sift Data Error:", e);
         toast.error("Failed to load session");
     } finally {
         setLoading(false);

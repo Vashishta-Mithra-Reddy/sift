@@ -41,6 +41,11 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
         formData.append("file", file);
         const { siftId } = await uploadSourceAction(formData);
         toast.success(`Uploaded ${file.name}`);
+        
+        // Wait briefly for eventual consistency before redirecting
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log("Redirecting to Sift (Upload):", siftId);
         onUploadComplete?.();
         router.push(`/sift/${siftId}`);
     } catch (error) {
@@ -71,6 +76,7 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
         
         setPastedText("");
         setTitle("");
+        console.log("Redirecting to Sift:", siftId);
         onUploadComplete?.();
         // Redirect to the newly created session
         router.push(`/sift/${siftId}`);

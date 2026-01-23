@@ -730,9 +730,3 @@ export default function SiftSessionPage() {
     </div>
   );
 }
-                {/* Add global mastery stats here later */}
-            </div>
-        </div>
-    </div>
-  );
-}

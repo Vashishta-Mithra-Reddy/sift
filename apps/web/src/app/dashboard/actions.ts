@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 
 import { createSift, addQuestions } from "@sift/auth/actions/sifts";
 import { processSiftContent } from "@/lib/content-processor";
+import { after } from "next/server";
 
 export async function uploadSourceAction(formData: FormData) {
   const file = formData.get("file") as File;
@@ -34,14 +35,14 @@ export async function uploadSourceAction(formData: FormData) {
       }
   }, headerStore);
 
-  // Trigger Async Processing (Fire and Forget)
-  (async () => {
+  // Trigger Async Processing (Reliable background task for Vercel)
+  after(async () => {
       try {
           await processSiftContent(siftId, text);
       } catch (e) {
           console.error("Background processing failed", e);
       }
-  })();
+  });
 
   return { sourceId, siftId };
 }
@@ -69,15 +70,15 @@ export async function createTextSourceAction(title: string, content: string) {
         }
     }, headerStore);
 
-    // 3. Trigger Async Processing (Fire and Forget)
+    // 3. Trigger Async Processing (Reliable background task for Vercel)
     // This handles both JSON parsing and AI generation automatically
-    (async () => {
+    after(async () => {
         try {
             await processSiftContent(siftId, content);
         } catch (e) {
             console.error("Background processing failed", e);
         }
-    })();
+    });
 
     return { sourceId, siftId };
 }

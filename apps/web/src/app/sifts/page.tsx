@@ -130,7 +130,7 @@ export default function SiftsPage() {
                             </div>
                         </div>
                         <Link href={`/sift/${sift.id}`} className="block">
-                        <CardTitle className="line-clamp-2 leading-tight group-hover:text-primary hover:underline transition-colors">
+                        <CardTitle className="line-clamp-2 leading-tight group-hover:text-primary hover:underline line-clamp-1 transition-colors">
                             {sift.source?.title || "Untitled Source"}
                         </CardTitle>
                         </Link>

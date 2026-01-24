@@ -31,7 +31,7 @@ export default function Hero() {
           </h1>
           <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto px-2 md:px-16 text-pretty">
             Upload any document, notes, or recording, 
-            and instantly generate precision-engineered quizzes to lock knowledge into your brain.
+            and instantly generate precision engineered quizzes to lock knowledge into your brain.
           </p>
         </div>
 

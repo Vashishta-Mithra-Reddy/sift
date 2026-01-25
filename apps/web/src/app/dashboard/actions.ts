@@ -4,8 +4,9 @@ import { createSource, getSources, deleteSource } from "@sift/auth/actions/sourc
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
-import { createSift, addQuestions } from "@sift/auth/actions/sifts";
+import { createSift, addQuestions, addSections } from "@sift/auth/actions/sifts";
 import { processSiftContent } from "@/lib/content-processor";
+import { generateQuestionsAction } from "@/app/api/ai/action";
 import { after } from "next/server";
 
 export async function uploadSourceAction(formData: FormData) {
@@ -83,6 +84,43 @@ export async function createTextSourceAction(title: string, content: string) {
     return { sourceId, siftId };
 }
 
+export async function createTopicSourceAction(topic: string) {
+    const headerStore = await headers();
+    
+    // 1. Create Source
+    const sourceId = await createSource({
+        title: topic,
+        fileName: "learning-path.txt",
+        type: "text",
+        content: `Learning Path for: ${topic}`,
+        isPasted: true,
+        metadata: {
+            source: "topic",
+            isLearningPath: true
+        }
+    }, headerStore);
+
+    // 2. Create Sift
+    const siftId = await createSift({
+        sourceId,
+        config: {
+            method: "topic",
+            isLearningPath: true
+        }
+    }, headerStore);
+
+    // 3. Trigger Async Processing
+    after(async () => {
+        try {
+            await generateQuestionsAction(siftId, topic, 'learn');
+        } catch (e) {
+            console.error("Background processing failed", e);
+        }
+    });
+
+    return { sourceId, siftId };
+}
+
 export async function createImportedSourceAction(title: string, questions: any[]) {
     const headerStore = await headers();
     
@@ -108,6 +146,64 @@ export async function createImportedSourceAction(title: string, questions: any[]
 
     // Add Questions
     await addQuestions(siftId, questions, headerStore);
+    
+    return { sourceId, siftId };
+}
+
+export async function createImportedLearningPathAction(title: string, sections: any[]) {
+    const headerStore = await headers();
+    
+    // Create source
+    const sourceId = await createSource({
+        title,
+        fileName: "imported-learning-path.json",
+        type: "json",
+        content: JSON.stringify(sections),
+        isPasted: true,
+        metadata: {
+            source: "import",
+            isLearningPath: true
+        }
+    }, headerStore);
+
+    // Create Sift
+    const siftId = await createSift({
+        sourceId,
+        config: {
+            method: "import",
+            isLearningPath: true
+        }
+    }, headerStore);
+
+    // Save sections first to get IDs
+    const sectionsToSave = sections.map((s: any, index: number) => ({
+        title: s.title,
+        content: s.content,
+        order: index
+    }));
+    
+    const savedSections = await addSections(siftId, sectionsToSave, headerStore);
+    
+    // Map saved sections to questions
+    const questionsToSave: any[] = [];
+    
+    sections.forEach((s: any, index: number) => {
+        const savedSection = savedSections.find(sec => sec.order === index);
+        
+        if (savedSection && s.questions && Array.isArray(s.questions)) {
+            s.questions.forEach((q: any) => {
+                questionsToSave.push({
+                    ...q,
+                    sectionId: savedSection.id,
+                    tags: [title]
+                });
+            });
+        }
+    });
+
+    if (questionsToSave.length > 0) {
+            await addQuestions(siftId, questionsToSave, headerStore);
+    }
     
     return { sourceId, siftId };
 }

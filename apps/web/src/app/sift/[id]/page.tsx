@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getSiftAction, getSiftSessionsAction, deleteSessionAction, updateSiftAction, deleteSiftAction } from "../actions";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, PlayIcon, Time01Icon, ChartHistogramIcon, Delete01Icon, Target02Icon, StarIcon, TrendingUp, MoreVerticalIcon, Globe02Icon, SquareLock02Icon, Archive02Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, PlayIcon, Time01Icon, ChartHistogramIcon, Delete01Icon, Target02Icon, StarIcon, TrendingUp, MoreVerticalIcon, Globe02Icon, SquareLock02Icon, Archive02Icon, Idea01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -118,6 +118,10 @@ export default function SiftSessionPage() {
 
   const handleStartSession = () => {
       router.push(`/sift/${id}/play`);
+  };
+
+  const handleStartLearning = () => {
+      router.push(`/sift/${id}/learn`);
   };
 
   const handleDeleteSession = async (sessionId: string) => {
@@ -291,10 +295,18 @@ export default function SiftSessionPage() {
                                 Start a new session to test your knowledge and improve mastery.
                             </p>
                         </div>
-                        <Button size="lg" className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-8 h-12 gap-2" onClick={handleStartSession}>
-                            <HugeiconsIcon icon={PlayIcon} className="h-6 w-6 fill-current" />
-                            Start New Quiz
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                            {sift.sections && sift.sections.length > 0 && (
+                                <Button size="lg" className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-8 h-12 gap-2" onClick={handleStartLearning}>
+                                    <HugeiconsIcon icon={Idea01Icon} className="h-6 w-6 fill-current" />
+                                    Start Learning
+                                </Button>
+                            )}
+                            <Button size="lg" variant={sift.sections && sift.sections.length > 0 ? "outline" : "default"} className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-8 h-12 gap-2" onClick={handleStartSession}>
+                                <HugeiconsIcon icon={PlayIcon} className="h-6 w-6 fill-current" />
+                                {sift.sections && sift.sections.length > 0 ? "Practice Quiz" : "Start New Quiz"}
+                            </Button>
+                        </div>
                     </div>
                 </Card>
 

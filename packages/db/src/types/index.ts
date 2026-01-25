@@ -27,11 +27,19 @@ export type SiftStatus = typeof sft.siftStatusEnum.enumValues[number];
 export type Question = InferSelectModel<typeof sft.questions>;
 export type NewQuestion = InferInsertModel<typeof sft.questions>;
 
+export type Section = InferSelectModel<typeof sft.siftSections>;
+export type NewSection = InferInsertModel<typeof sft.siftSections>;
+
 export type Echo = InferSelectModel<typeof ech.echoes>;
 export type NewEcho = InferInsertModel<typeof ech.echoes>;
 
 export type SiftWithSource = Sift & { source: Source };
-export type SiftWithQuestions = Sift & { questions: Question[]; source: Source | null };
+export type SectionWithQuestions = Section & { questions: Question[] };
+export type SiftWithQuestions = Sift & { 
+    questions: Question[]; 
+    sections?: SectionWithQuestions[]; 
+    source: Source | null 
+};
 export type SourceWithSifts = Source & { sifts: Sift[] };
 
 

@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import type { SiftWithQuestions } from "@sift/auth/types";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, easeInOut } from "framer-motion";
 import useSound from "use-sound";
 import { Pie, PieChart } from "recharts";
 import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
@@ -451,7 +451,7 @@ export default function SiftPlayPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+                transition={{ease: easeInOut, duration: 0.3 }}
                 className="w-full"
             >
                 <Card className="p-4 md:p-8 md:pb-8 min-h-[400px] flex flex-col justify-between border-border/50 bg-card/50 backdrop-blur-sm">
@@ -460,7 +460,7 @@ export default function SiftPlayPage() {
                             {currentQ?.question}
                         </h2>
 
-                        <div className="grid gap-3">
+                        <div className="grid gap-3 mb-6">
                             {options.length > 0 ? (
                                 options.map((option, idx) => {
                                     let className = "relative justify-start text-left h-auto py-4 px-4 md:px-6 text-sm md:text-base font-normal transition-all duration-200 group whitespace-normal";
@@ -537,7 +537,8 @@ export default function SiftPlayPage() {
                             <motion.div 
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="space-y-4 pt-6 border-t border-dashed"
+                                transition={{ease:easeInOut}}
+                                className="space-y-4"
                             >
                                 {currentQ?.explanation && (
                                     <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-xl border border-blue-100 dark:border-blue-900/50 text-sm flex gap-3">

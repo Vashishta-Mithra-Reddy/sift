@@ -1,6 +1,7 @@
 import { 
     createSift as dbCreateSift, 
     addQuestionsToSift as dbAddQuestionsToSift, 
+    addSectionsToSift as dbAddSectionsToSift,
     getSifts as dbGetSifts, 
     getSift as dbGetSift, 
     updateSift as dbUpdateSift,
@@ -47,6 +48,24 @@ export async function addQuestions(siftId: string, questions: CreateQuestionInpu
     }
   
     return await dbAddQuestionsToSift(siftId, questions);
+}
+
+export async function addSections(siftId: string, sections: { title: string; content: string; order: number }[], headers: Headers) {
+    const session = await auth.api.getSession({
+      headers,
+    });
+  
+    if (!session?.user) {
+      throw new Error("Unauthorized");
+    }
+    
+    // Check ownership of sift
+    const sift = await dbGetSift(siftId);
+    if (!sift || sift.userId !== session.user.id) {
+        throw new Error("Unauthorized");
+    }
+  
+    return await dbAddSectionsToSift(siftId, sections);
 }
 
 export async function getSifts(headers: Headers): Promise<SiftWithSource[]> {

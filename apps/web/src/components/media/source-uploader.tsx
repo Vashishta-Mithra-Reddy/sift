@@ -4,9 +4,9 @@ import { useState, useCallback } from "react";
 import { useDropzone, type FileRejection } from "react-dropzone";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Upload01Icon, Loading03Icon, File01Icon, Delete01Icon, TextFontIcon, Link01Icon } from "@hugeicons/core-free-icons";
+import { Upload01Icon, Loading03Icon, File01Icon, Delete01Icon, TextFontIcon, Link01Icon, Idea01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
-import { uploadSourceAction, createTextSourceAction } from "@/app/dashboard/actions";
+import { uploadSourceAction, createTextSourceAction, createTopicSourceAction } from "@/app/dashboard/actions";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +25,7 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
   const [activeTab, setActiveTab] = useState("file");
   const [pastedText, setPastedText] = useState("");
   const [title, setTitle] = useState("");
+  const [topic, setTopic] = useState("");
 
   const onDrop = useCallback(async (acceptedFiles: File[], fileRejections: FileRejection[]) => {
     if (fileRejections.length > 0) {
@@ -88,6 +89,31 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
     }
   };
 
+  const handleTopicSubmit = async () => {
+    if (!topic.trim()) {
+        toast.error("Please enter a topic");
+        return;
+    }
+
+    setIsUploading(true);
+    try {
+        const { siftId } = await createTopicSourceAction(topic);
+        toast.success("Learning path generating...");
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        setTopic("");
+        console.log("Redirecting to Sift (Topic):", siftId);
+        onUploadComplete?.();
+        router.push(`/sift/${siftId}`);
+    } catch (error) {
+        console.error(error);
+        toast.error("Failed to start learning path");
+    } finally {
+        setIsUploading(false);
+    }
+  };
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     maxFiles: 1,
@@ -103,7 +129,7 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
   return (
     <div className={cn("space-y-4", className)}>
       <Tabs defaultValue="file" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 mb-4">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="file" className="flex items-center gap-2">
                 <HugeiconsIcon icon={Upload01Icon} className="h-4 w-4" />
                 Upload File
@@ -111,6 +137,10 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
             <TabsTrigger value="paste" className="flex items-center gap-2">
                 <HugeiconsIcon icon={TextFontIcon} className="h-4 w-4" />
                 Paste Text
+            </TabsTrigger>
+            <TabsTrigger value="topic" className="flex items-center gap-2">
+                <HugeiconsIcon icon={Idea01Icon} className="h-4 w-4" />
+                Learn Topic
             </TabsTrigger>
         </TabsList>
 
@@ -176,6 +206,33 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
                         ) : (
                             <>
                                 Sift It
+                            </>
+                        )}
+                    </Button>
+                </div>
+            </div>
+        </TabsContent>
+
+        <TabsContent value="topic" className="mt-0 space-y-4">
+            <div className="space-y-4 border rounded-xl p-6 bg-card">
+                <div className="space-y-2">
+                     <Input 
+                        placeholder="What do you want to learn? (e.g. 'Quantum Physics', 'French Revolution')" 
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value)}
+                        disabled={isUploading}
+                    />
+                </div>
+                <div className="flex justify-end">
+                    <Button onClick={handleTopicSubmit} disabled={isUploading || !topic.trim()}>
+                        {isUploading ? (
+                            <>
+                                <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin mr-2" />
+                                Generating...
+                            </>
+                        ) : (
+                            <>
+                                Start Learning
                             </>
                         )}
                     </Button>

@@ -1,6 +1,6 @@
 import { db } from "..";
-import { sifts, questions, siftSessions, sessionAnswers } from "../schema/sifts";
-import { eq, desc, and } from "drizzle-orm";
+import { sifts, questions, siftSessions, sessionAnswers, siftSections } from "../schema/sifts";
+import { eq, desc, and, asc } from "drizzle-orm";
 import type { NewSift, SiftWithSource, SiftWithQuestions } from "../types";
 
 export type CreateSiftInput = {
@@ -34,6 +34,7 @@ export async function addQuestionsToSift(siftId: string, questionsData: any[]) {
     const newQuestions = questionsData.map(q => ({
         id: crypto.randomUUID(),
         siftId,
+        sectionId: q.sectionId, // Optional
         question: q.question,
         options: q.options, // jsonb
         answer: q.answer,
@@ -46,6 +47,22 @@ export async function addQuestionsToSift(siftId: string, questionsData: any[]) {
     if (newQuestions.length > 0) {
         await db.insert(questions).values(newQuestions);
     }
+}
+
+export async function addSectionsToSift(siftId: string, sectionsData: { title: string; content: string; order: number }[]) {
+    const newSections = sectionsData.map(s => ({
+        id: crypto.randomUUID(),
+        siftId,
+        title: s.title,
+        content: s.content,
+        order: s.order,
+        createdAt: new Date(),
+    }));
+
+    if (newSections.length > 0) {
+        return await db.insert(siftSections).values(newSections).returning();
+    }
+    return [];
 }
 
 export async function getSifts(userId: string): Promise<SiftWithSource[]> {
@@ -75,6 +92,12 @@ export async function getSift(id: string): Promise<SiftWithQuestions | undefined
     where: eq(sifts.id, id),
     with: {
         questions: true,
+        sections: {
+            orderBy: asc(siftSections.order),
+            with: {
+                questions: true
+            }
+        },
         source: true
     }
   });

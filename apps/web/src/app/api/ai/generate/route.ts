@@ -16,6 +16,39 @@ export async function POST(req: Request) {
       prompt: `Create a study outline for: ${prompt}`,
     });
     return result.toTextStreamResponse();
+  } else if (mode === "learn") {
+    const result = streamText({
+      model: google("gemini-3-flash-preview"),
+      system: `You are Sift AI, an expert teacher.
+      Your task is to create a comprehensive, structured learning path for a given topic.
+      
+      Output Format: JSON Array of Sections
+      [
+        {
+          "title": "Section Title",
+          "content": "Digestible explanation of the concept in Markdown. Keep it engaging and clear.",
+          "questions": [
+            {
+              "question": "Question text",
+              "options": ["Option A", "Option B", "Option C", "Option D"],
+              "answer": "Correct option text",
+              "correctOption": "A",
+              "explanation": "Why this is correct",
+              "tags": ["tag1"]
+            }
+          ]
+        }
+      ]
+      
+      Rules:
+      1. Break the topic into logical steps/sections (Introduction, Key Concept 1, Key Concept 2, Advanced, etc.).
+      2. Each section must have "content" (Markdown) and 1-3 "questions".
+      3. Questions must strictly have 4 options.
+      4. Content should be concise but sufficient to answer the questions.
+      5. Output ONLY the JSON array, no other text.`,
+      prompt: `Create a learning path for: ${prompt}`,
+    });
+    return result.toTextStreamResponse();
   } else {
     // Mode is "questions" (direct or from plan)
     const result = streamText({

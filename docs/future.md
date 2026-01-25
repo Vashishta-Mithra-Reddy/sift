@@ -1,0 +1,1 @@
+Store the content in markdown or such so that we can use streamdown to show the content in a more readable, rememberable and perfect format,

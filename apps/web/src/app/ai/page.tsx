@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Copy01Icon, CheckmarkCircle02Icon, MagicWand01Icon, Upload01Icon, FlashIcon, PlayIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
-import { createImportedSourceAction } from "@/app/dashboard/actions";
+import { createImportedSourceAction, createImportedLearningPathAction } from "@/app/dashboard/actions";
 import { useRouter } from "next/navigation";
 
 const SYSTEM_PROMPT = `You are Sift AI, an expert at creating active recall study materials.
@@ -39,6 +39,34 @@ Rules:
 4. Keep explanations concise but helpful.
 5. Output ONLY the JSON array, no other text.`;
 
+const LEARNING_PATH_SYSTEM_PROMPT = `You are Sift AI, an expert teacher.
+Your task is to create a comprehensive, structured learning path for a given topic.
+
+Output Format: JSON Array of Sections
+[
+  {
+    "title": "Section Title",
+    "content": "Digestible explanation of the concept in Markdown. Keep it engaging and clear.",
+    "questions": [
+      {
+        "question": "Question text",
+        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "answer": "Correct option text",
+        "correctOption": "A",
+        "explanation": "Why this is correct",
+        "tags": ["tag1"]
+      }
+    ]
+  }
+]
+
+Rules:
+1. Break the topic into logical steps/sections (Introduction, Key Concept 1, Key Concept 2, Advanced, etc.).
+2. Each section must have "content" (Markdown) and 1-3 "questions".
+3. Questions must strictly have 4 options.
+4. Content should be concise but sufficient to answer the questions.
+5. Output ONLY the JSON array, no other text.`;
+
 export default function AIPage() {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
@@ -49,6 +77,7 @@ export default function AIPage() {
   // Direct Generate State
   const [topic, setTopic] = useState("");
   const [planMode, setPlanMode] = useState(false);
+  const [learnMode, setLearnMode] = useState(false);
   const [plan, setPlan] = useState("");
   const [showPlanReview, setShowPlanReview] = useState(false);
 
@@ -67,26 +96,33 @@ export default function AIPage() {
     }
   });
 
-  // Question Generator
+  // Question/Learning Path Generator
   const { complete: generateQuestions, completion: questionsStream, isLoading: isGeneratingQuestions } = useCompletion({
     api: "/api/ai/generate",
-    body: { mode: "questions" },
+    body: { mode: learnMode ? "learn" : "questions" },
     streamProtocol: "text",
     onFinish: async (_prompt, result) => {
         try {
             const cleaned = result.replace(/```json/g, "").replace(/```/g, "").trim();
-            const questions = JSON.parse(cleaned);
-            const { siftId } = await createImportedSourceAction(topic || "AI Generated Sift", questions);
-            toast.success("Sift created!");
-            router.push(`/sift/${siftId}`);
+            const parsedData = JSON.parse(cleaned);
+            
+            if (learnMode) {
+                const { siftId } = await createImportedLearningPathAction(topic || "AI Learning Path", parsedData);
+                toast.success("Learning path created!");
+                router.push(`/sift/${siftId}`);
+            } else {
+                const { siftId } = await createImportedSourceAction(topic || "AI Generated Sift", parsedData);
+                toast.success("Sift created!");
+                router.push(`/sift/${siftId}`);
+            }
         } catch (e) {
             console.error(e);
             toast.error("Failed to parse AI response. Try again.");
         }
     },
     onError: (err) => {
-        console.error("Question generation error:", err);
-        toast.error("Failed to generate questions. Please try again.");
+        console.error("Generation error:", err);
+        toast.error("Failed to generate content. Please try again.");
     }
   });
 
@@ -192,10 +228,26 @@ export default function AIPage() {
                                 <Switch 
                                     id="plan-mode" 
                                     checked={planMode} 
-                                    onCheckedChange={setPlanMode}
+                                    onCheckedChange={(checked) => {
+                                        setPlanMode(checked);
+                                        if (checked) setLearnMode(false);
+                                    }}
                                     disabled={isPlanning || isGeneratingQuestions}
                                 />
                                 <Label htmlFor="plan-mode">Plan Mode (Review outline before generating)</Label>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                                <Switch 
+                                    id="learn-mode" 
+                                    checked={learnMode} 
+                                    onCheckedChange={(checked) => {
+                                        setLearnMode(checked);
+                                        if (checked) setPlanMode(false);
+                                    }}
+                                    disabled={isPlanning || isGeneratingQuestions}
+                                />
+                                <Label htmlFor="learn-mode">Learning Path (Generate structured course with content & quiz)</Label>
                             </div>
 
                             {!showPlanReview && !isGeneratingQuestions && !isPlanning && (
@@ -239,7 +291,7 @@ export default function AIPage() {
                             <div className="space-y-4 pt-4 border-t border-dashed">
                                 <div className="flex items-center gap-2 text-primary animate-pulse">
                                     <HugeiconsIcon icon={MagicWand01Icon} className="h-5 w-5" />
-                                    <span className="font-medium">Generating Questions...</span>
+                                    <span className="font-medium">{learnMode ? "Generating Learning Path..." : "Generating Questions..."}</span>
                                 </div>
                                 <div className="p-4 rounded-lg border bg-muted/50 max-h-[200px] overflow-hidden opacity-50 text-xs font-mono">
                                     {questionsStream}

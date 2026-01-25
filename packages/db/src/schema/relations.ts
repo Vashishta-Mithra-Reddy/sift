@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { user, session, account } from "./auth";
 import { sources } from "./sources";
-import { sifts, questions, siftSessions, sessionAnswers } from "./sifts";
+import { sifts, questions, siftSessions, sessionAnswers, siftSections } from "./sifts";
 import { echoes } from "./echoes";
 import { pushTokens } from "./push-tokens";
 
@@ -48,6 +48,15 @@ export const siftsRelations = relations(sifts, ({ one, many }) => ({
   }),
   questions: many(questions),
   sessions: many(siftSessions),
+  sections: many(siftSections),
+}));
+
+export const siftSectionsRelations = relations(siftSections, ({ one, many }) => ({
+  sift: one(sifts, {
+    fields: [siftSections.siftId],
+    references: [sifts.id],
+  }),
+  questions: many(questions),
 }));
 
 export const siftSessionsRelations = relations(siftSessions, ({ one, many }) => ({
@@ -66,6 +75,10 @@ export const questionsRelations = relations(questions, ({ one, many }) => ({
   sift: one(sifts, {
     fields: [questions.siftId],
     references: [sifts.id],
+  }),
+  section: one(siftSections, {
+    fields: [questions.sectionId],
+    references: [siftSections.id],
   }),
   sessionAnswers: many(sessionAnswers),
 }));

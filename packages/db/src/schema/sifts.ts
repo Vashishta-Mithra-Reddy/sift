@@ -37,11 +37,24 @@ export const siftSessions = pgTable("sift_sessions", {
   completedAt: timestamp("completed_at"),
 });
 
+export const siftSections = pgTable("sift_sections", {
+  id: text("id").primaryKey(),
+  siftId: text("sift_id")
+    .notNull()
+    .references(() => sifts.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  content: text("content").notNull(), // The learning material
+  order: integer("order").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const questions = pgTable("questions", {
   id: text("id").primaryKey(),
   siftId: text("sift_id")
     .notNull()
     .references(() => sifts.id, { onDelete: "cascade" }),
+  sectionId: text("section_id")
+    .references(() => siftSections.id, { onDelete: "cascade" }),
   question: text("question").notNull(),
   answer: text("answer").notNull(), // The correct answer text
   correctOption: text("correct_option"), // "A", "B", "C", "D"

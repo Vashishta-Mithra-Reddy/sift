@@ -13,6 +13,7 @@ export const sifts = pgTable("sifts", {
     .notNull()
     .references(() => sources.id, { onDelete: "cascade" }),
   status: siftStatusEnum("status").default("in_progress").notNull(), 
+  summary: text("summary"), // Optional summary of the sift content
   isPublic: boolean("is_public").default(false).notNull(),
   isArchived: boolean("is_archived").default(false).notNull(),
   config: jsonb("config"), // { depth: 'deep', format: 'flashcard' }

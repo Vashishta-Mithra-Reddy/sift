@@ -2,7 +2,8 @@
 
 import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
-import { addQuestions, addSections } from "@sift/auth/actions/sifts";
+import { addQuestions, addSections, updateSiftSummary } from "@sift/auth/actions/sifts";
+import { getLearningPath, updatePathSummary } from "@sift/auth/actions/learning-paths";
 import { headers } from "next/headers";
 import { eventBus } from "@/lib/events";
 
@@ -34,36 +35,50 @@ Rules:
 const LEARNING_PATH_SYSTEM_PROMPT = `You are Sift AI, an expert teacher.
 Your task is to create a comprehensive, structured learning path for a given topic or content.
 
-Output Format: JSON Array of Sections
-[
-  {
-    "title": "Section Title",
-    "content": "Digestible explanation of the concept in Markdown. Keep it engaging and clear.",
-    "questions": [
-      {
-        "question": "Question text",
-        "options": ["Option A", "Option B", "Option C", "Option D"],
-        "answer": "Correct option text",
-        "correctOption": "A",
-        "explanation": "Why this is correct",
-        "tags": ["tag1"]
-      }
-    ]
-  }
-]
+Output Format: JSON Object
+{
+  "summary": "A brief summary of the key concepts covered in this module (max 2 sentences). Used for tracking progress.",
+  "sections": [
+    {
+      "title": "Section Title",
+      "content": "Digestible explanation of the concept in Markdown. Keep it engaging and clear.",
+      "questions": [
+        {
+          "question": "Question text",
+          "options": ["Option A", "Option B", "Option C", "Option D"],
+          "answer": "Correct option text",
+          "correctOption": "A",
+          "explanation": "Why this is correct",
+          "tags": ["tag1 (specify the topic covered)"]
+        }
+      ]
+    }
+  ]
+}
 
 Rules:
 1. Break the topic into logical steps/sections (Introduction, Key Concept 1, Key Concept 2, Advanced, etc.).
 2. Each section must have "content" (Markdown) and 1-3 "questions".
 3. Questions must strictly have 4 options.
 4. Content should be concise but sufficient to answer the questions.
-5. Output ONLY the JSON array, no other text.
+5. Output ONLY the JSON object, no other text.
 `;
 
-export async function generateQuestionsAction(siftId: string, content: string, mode: 'questions' | 'learn' = 'questions') {
+export async function generateQuestionsAction(siftId: string, content: string, mode: 'questions' | 'learn' = 'questions', pathId?: string) {
     const MAX_ATTEMPTS = 3;
+    const headerStore = await headers();
     const systemPrompt = mode === 'learn' ? LEARNING_PATH_SYSTEM_PROMPT : SYSTEM_PROMPT;
-    const userPrompt = mode === 'learn' ? `Create a learning path for: ${content}` : `Here is the content to generate questions from:\n\n${content}`;
+    
+    
+    let userPrompt = mode === 'learn' ? `Create a learning path for: ${content}` : `Here is the content to generate questions from:\n\n${content}`;
+
+    // Inject Context for Learning Paths
+    if (mode === 'learn' && pathId) {
+        const path = await getLearningPath(pathId, headerStore);
+        if (path && path.summary) {
+            userPrompt = `CONTEXT: The user has already learned the following concepts:\n${path.summary}\n\nGOAL: ${content}\n\nINSTRUCTION: Create the NEXT logical module in this curriculum. Do not repeat the concepts already learned unless for brief review. Introduce new concepts that build upon the previous ones.\n\n${userPrompt}`;
+        }
+    }
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
@@ -76,27 +91,31 @@ export async function generateQuestionsAction(siftId: string, content: string, m
             });
 
             // 1. Locate JSON
-            const jsonStartIndex = text.indexOf('[');
-            const jsonEndIndex = text.lastIndexOf(']') + 1;
+            const jsonStartIndex = text.indexOf(mode === 'learn' ? '{' : '[');
+            const jsonEndIndex = text.lastIndexOf(mode === 'learn' ? '}' : ']') + 1;
 
             if (jsonStartIndex === -1 || jsonEndIndex === -1) {
-                 throw new Error("AI did not return a valid JSON array");
+                 throw new Error("AI did not return a valid JSON");
             }
 
             // 2. Parse JSON
             const jsonString = text.substring(jsonStartIndex, jsonEndIndex);
-            const parsedData = JSON.parse(jsonString);
+            let parsedData: any = JSON.parse(jsonString);
 
-            if (!Array.isArray(parsedData)) {
-                throw new Error("AI response is not an array");
-            }
-
-            const headerStore = await headers();
             let questionsCount = 0;
 
             if (mode === 'learn') {
-                // Handle Learning Path (Sections)
-                const sections = parsedData;
+                // Handle Learning Path (Object with sections and summary)
+                if (!parsedData.sections || !Array.isArray(parsedData.sections)) {
+                     // Fallback for array output if AI ignores object instruction (backwards compatibility)
+                     if (Array.isArray(parsedData)) {
+                         parsedData = { sections: parsedData };
+                     } else {
+                         throw new Error("AI response is not in the expected format");
+                     }
+                }
+
+                const sections = parsedData.sections;
                 
                 // Save sections first to get IDs
                 const sectionsToSave = sections.map((s: any, index: number) => ({
@@ -128,8 +147,22 @@ export async function generateQuestionsAction(siftId: string, content: string, m
                      await addQuestions(siftId, questionsToSave, headerStore);
                      questionsCount = questionsToSave.length;
                 }
+
+                // Update Path Summary
+                if (pathId && parsedData.summary) {
+                    await updatePathSummary(pathId, parsedData.summary, headerStore);
+                }
+
+                // Save summary to sift
+                if (parsedData.summary) {
+                    await updateSiftSummary(siftId, parsedData.summary, headerStore);
+                }
+
             } else {
                 // Handle Standard Questions
+                if (!Array.isArray(parsedData)) {
+                    throw new Error("AI response is not an array");
+                }
                 const questions = parsedData;
 
                 // Strict validation: Ensure exactly 4 options per question

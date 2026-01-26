@@ -7,6 +7,7 @@ export type CreateSiftInput = {
   sourceId: string;
   config?: Record<string, any>;
   isPublic?: boolean;
+  summary?: string;
 };
 
 export type CreateQuestionInput = {
@@ -24,6 +25,7 @@ export async function createSift(userId: string, data: CreateSiftInput) {
     userId,
     sourceId: data.sourceId,
     config: data.config,
+    summary: data.summary,
     status: "in_progress",
   };
   await db.insert(sifts).values(newSift);

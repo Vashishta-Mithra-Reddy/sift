@@ -4,8 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getSiftAction, getSiftSessionsAction, deleteSessionAction, updateSiftAction, deleteSiftAction } from "../actions";
+import { getLearningPathForSiftAction, generateNextModuleAction } from "../../learn/actions";
+import { Streamdown } from "streamdown";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, PlayIcon, Time01Icon, ChartHistogramIcon, Delete01Icon, Target02Icon, StarIcon, TrendingUp, MoreVerticalIcon, Globe02Icon, SquareLock02Icon, Archive02Icon, Idea01Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, PlayIcon, Time01Icon, ChartHistogramIcon, Delete01Icon, Target02Icon, StarIcon, TrendingUp, MoreVerticalIcon, Globe02Icon, SquareLock02Icon, Archive02Icon, Idea01Icon, Book01Icon, ArrowRightIcon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +36,8 @@ export default function SiftSessionPage() {
   const [loading, setLoading] = useState(true);
   const [deletingSession, setDeletingSession] = useState<string | null>(null);
   const [isDeletingSift, setIsDeletingSift] = useState(false);
+  const [learningPath, setLearningPath] = useState<any>(null);
+  const [generatingNext, setGeneratingNext] = useState(false);
 
   const barChartConfig = {
     score: {
@@ -107,6 +111,7 @@ export default function SiftSessionPage() {
 
   useEffect(() => {
     fetchSiftData();
+    getLearningPathForSiftAction(id).then(setLearningPath);
   }, [fetchSiftData]);
 
   // Handle review query param redirection
@@ -175,6 +180,29 @@ export default function SiftSessionPage() {
           toast.error("Failed to delete sift");
           setIsDeletingSift(false);
       }
+  };
+
+  const handleGenerateNextModule = async () => {
+    if (!learningPath) return;
+    setGeneratingNext(true);
+    try {
+        const { siftId } = await generateNextModuleAction(learningPath.id, learningPath.goal);
+        toast.success("Module generated!");
+        
+        // Refresh learning path to update the button state
+        const updatedPath = await getLearningPathForSiftAction(id);
+        if (updatedPath) {
+            setLearningPath(updatedPath);
+        }
+    } catch (e) {
+        toast.error("Failed to generate module");
+    } finally {
+        setGeneratingNext(false);
+    }
+  };
+
+  const handleContinueLearning = (nextSiftId: string) => {
+    router.push(`/sift/${nextSiftId}`);
   };
 
   if (loading) {
@@ -309,6 +337,62 @@ export default function SiftSessionPage() {
                         </div>
                     </div>
                 </Card>
+
+                {/* Learning Path Section */}
+                {learningPath && (
+                    <Card className="p-6 border-primary/20 bg-background font-jakarta">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2 text-primary font-semibold">
+                                    <HugeiconsIcon icon={Book01Icon} className="h-5 w-5" />
+                                    Part of Learning Path
+                                </div>
+                                <h3 className="text-lg font-bold">{learningPath.title}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    {learningPath.sifts.find((s: any) => s.siftId === id)?.order + 1} of {learningPath.sifts.length} modules completed
+                                </p>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 w-full md:w-auto">
+                                {(() => {
+                                    const currentSiftIndex = learningPath.sifts.findIndex((s: any) => s.siftId === id);
+                                    const nextSift = learningPath.sifts[currentSiftIndex + 1];
+                                    
+                                    if (nextSift) {
+                                        return (
+                                            <Button variant="outline" className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-4 h-12 gap-2 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#00000008_10px,#00000008_11px)] dark:bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#ffffff08_10px,#ffffff08_11px)] duration-300 transition-all" onClick={() => handleContinueLearning(nextSift.siftId)}>
+                                                Continue Learning
+                                                <HugeiconsIcon icon={ArrowRightIcon} className="h-4 w-4" />
+                                            </Button>
+                                        );
+                                    } else {
+                                        return (
+                                            <Button
+                                                size="lg" 
+                                                variant="outline"
+                                                className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-4 h-12 gap-2 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#00000008_10px,#00000008_11px)] dark:bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#ffffff08_10px,#ffffff08_11px)] duration-300 transition-all"
+                                                onClick={handleGenerateNextModule}
+                                                disabled={generatingNext}
+                                            >
+                                                {generatingNext ? (
+                                                    <>
+                                                        <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                                                        Generating...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        {/* <HugeiconsIcon icon={PlayIcon} className="h-4 w-4 fill-current" /> */}
+                                                        Generate Next Module
+                                                    </>
+                                                )}
+                                            </Button>
+                                        );
+                                    }
+                                })()}
+                            </div>
+                        </div>
+                    </Card>
+                )}
 
                     {/* Stats & Charts Row */}
                     <div className="grid md:grid-cols-2 gap-8 w-full min-w-0">
@@ -745,6 +829,36 @@ export default function SiftSessionPage() {
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Learning Content Section */}
+                {sift.sections && sift.sections.length > 0 && (
+                    <div className="space-y-6 pt-4">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold tracking-tight">Learning Material</h2>
+                            <Badge variant="outline" className="h-6 bg-background">{sift.sections.length} Section{sift.sections.length !== 1 ? 's' : ''}</Badge>
+                        </div>
+                        <div className="grid gap-6">
+                            {sift.sections.map((section: any, idx: number) => (
+                                <Card key={idx} className="p-6 md:p-8 font-jakarta border-primary/10 bg-background/50 backdrop-blur-sm">
+                                    <div className="flex items-start gap-4">
+                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 text-sm font-bold mt-1">
+                                            {idx + 1}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h3 className="text-xl font-bold">{section.title}</h3>
+                                            <p className="text-sm text-muted-foreground">Section {idx + 1} of {sift.sections?.length}</p>
+                                        </div>
+                                    </div>
+                                    <div className="prose dark:prose-invert max-w-none text-lg">
+                                        <Streamdown mode="static">
+                                            {section.content}
+                                        </Streamdown>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Sidebar Stats (Placeholder) */}

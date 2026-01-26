@@ -3,3 +3,5 @@ Exclusively use Hugeicons for all UI icons by importing the HugeiconsIcon wrappe
 Strictly do not use shadows for any UI elements.
 
 Never use browser based confirm, alert, or prompt dialogs.
+
+Strictly be consistent with the design and follow the design language of the application perfectly.

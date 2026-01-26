@@ -471,7 +471,7 @@ export default function LearningPathPage() {
                                 <h2 className="text-3xl font-bold text-primary tracking-tight">{section.title}</h2>
                             </div>
                             <div className="prose dark:prose-invert max-w-none">
-                                <Streamdown className="text-lg">{section.content}</Streamdown>
+                                <Streamdown className="text-lg" mode="static">{section.content}</Streamdown>
                             </div>
                             <div className="flex justify-end pt-6 border-none border-border/50">
                                 <Button onClick={handleNext} className="gap-2 text-base h-12 px-8 rounded-xl shadow-none">

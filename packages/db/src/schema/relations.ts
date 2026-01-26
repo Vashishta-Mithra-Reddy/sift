@@ -4,6 +4,7 @@ import { sources } from "./sources";
 import { sifts, questions, siftSessions, sessionAnswers, siftSections } from "./sifts";
 import { echoes } from "./echoes";
 import { pushTokens } from "./push-tokens";
+import { learningPaths, learningPathSifts } from "./learning-paths";
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
@@ -12,6 +13,7 @@ export const userRelations = relations(user, ({ many }) => ({
   sifts: many(sifts),
   echoes: many(echoes),
   pushTokens: many(pushTokens),
+  learningPaths: many(learningPaths),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -109,5 +111,24 @@ export const pushTokensRelations = relations(pushTokens, ({ one }) => ({
   user: one(user, {
     fields: [pushTokens.userId],
     references: [user.id],
+  }),
+}));
+
+export const learningPathsRelations = relations(learningPaths, ({ one, many }) => ({
+  user: one(user, {
+    fields: [learningPaths.userId],
+    references: [user.id],
+  }),
+  sifts: many(learningPathSifts),
+}));
+
+export const learningPathSiftsRelations = relations(learningPathSifts, ({ one }) => ({
+  path: one(learningPaths, {
+    fields: [learningPathSifts.pathId],
+    references: [learningPaths.id],
+  }),
+  sift: one(sifts, {
+    fields: [learningPathSifts.siftId],
+    references: [sifts.id],
   }),
 }));

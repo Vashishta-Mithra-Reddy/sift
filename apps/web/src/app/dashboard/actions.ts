@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
 import { createSift, addQuestions, addSections } from "@sift/auth/actions/sifts";
+import { createLearningPath, addSiftToPath } from "@sift/auth/actions/learning-paths";
 import { processSiftContent } from "@/lib/content-processor";
 import { generateQuestionsAction } from "@/app/api/ai/action";
 import { after } from "next/server";
@@ -152,8 +153,11 @@ export async function createImportedSourceAction(title: string, questions: any[]
 
 export async function createImportedLearningPathAction(title: string, sections: any[]) {
     const headerStore = await headers();
+
+    // 1. Create the Learning Path Container
+    const learningPath = await createLearningPath(title, headerStore);
     
-    // Create source
+    // 2. Create source for the first module
     const sourceId = await createSource({
         title,
         fileName: "imported-learning-path.json",
@@ -166,7 +170,7 @@ export async function createImportedLearningPathAction(title: string, sections: 
         }
     }, headerStore);
 
-    // Create Sift
+    // 3. Create Sift for the first module
     const siftId = await createSift({
         sourceId,
         config: {
@@ -175,7 +179,10 @@ export async function createImportedLearningPathAction(title: string, sections: 
         }
     }, headerStore);
 
-    // Save sections first to get IDs
+    // 4. Link Sift to Learning Path
+    await addSiftToPath(learningPath.id, siftId, headerStore);
+
+    // 5. Save sections first to get IDs
     const sectionsToSave = sections.map((s: any, index: number) => ({
         title: s.title,
         content: s.content,
@@ -184,7 +191,7 @@ export async function createImportedLearningPathAction(title: string, sections: 
     
     const savedSections = await addSections(siftId, sectionsToSave, headerStore);
     
-    // Map saved sections to questions
+    // 6. Map saved sections to questions
     const questionsToSave: any[] = [];
     
     sections.forEach((s: any, index: number) => {
@@ -205,7 +212,7 @@ export async function createImportedLearningPathAction(title: string, sections: 
             await addQuestions(siftId, questionsToSave, headerStore);
     }
     
-    return { sourceId, siftId };
+    return { sourceId, siftId, pathId: learningPath.id };
 }
 
 export async function getSourcesAction() {

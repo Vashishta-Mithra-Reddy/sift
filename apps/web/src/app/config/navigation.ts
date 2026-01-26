@@ -5,7 +5,8 @@ import {
   ChartHistogramIcon,
   Settings01Icon,
   AiCloud01Icon,
-  Globe02Icon
+  Globe02Icon,
+  Mortarboard02Icon
 } from "@hugeicons/core-free-icons";
 import { type UrlObject } from "url";
 
@@ -41,6 +42,13 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     href: { pathname: "/ai" },
     pathname: "/ai",
     icon: AiCloud01Icon,
+  },
+  {
+    key: "learn",
+    label: "Learn",
+    href: { pathname: "/learn" },
+    pathname: "/learn",
+    icon: Mortarboard02Icon,
   },
   {
     key: "dashboard",

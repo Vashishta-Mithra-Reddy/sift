@@ -14,8 +14,8 @@ export default function Hero() {
         <Silk
           speed={5}
           scale={1}
-          // color="#2529eb"
-          color="#6366F1"
+          color="#2529eb"
+          // color="#6366F1"
           // color="#312E81"
           // color="#8B5CF6"
           noiseIntensity={1.5}

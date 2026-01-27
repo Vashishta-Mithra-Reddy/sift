@@ -185,6 +185,26 @@ export async function updateSiftSummary(id: string, summary: string, headers: He
     return await dbUpdateSift(id, { summary });
 }
 
+export async function updateSiftTakeaways(id: string, takeaways: { title: string; content: string }[], headers: Headers) {
+    const session = await auth.api.getSession({
+      headers,
+    });
+  
+    if (!session?.user) {
+      throw new Error("Unauthorized");
+    }
+  
+    // Verify ownership
+    const sift = await dbGetSift(id);
+    if (!sift) return;
+    
+    if (sift.userId !== session.user.id) {
+        throw new Error("Unauthorized");
+    }
+  
+    return await dbUpdateSift(id, { takeaways });
+}
+
 // Session Actions
 
 export async function createSiftSession(siftId: string, headers: Headers) {

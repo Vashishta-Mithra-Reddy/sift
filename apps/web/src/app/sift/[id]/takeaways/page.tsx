@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getFlashcardsAction, getSiftAction } from "../../actions";
+import { getSiftAction } from "../../actions";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -13,25 +13,27 @@ import {
     Idea01Icon,
     Tick02Icon,
     RepeatIcon,
-    ArrowLeft02Icon
+    ArrowLeft02Icon,
+    Copy01Icon,
+    CheckmarkCircle02Icon
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useHotkeys } from "react-hotkeys-hook";
 import useSound from "use-sound";
 
-export default function FlashcardsPage() {
+export default function TakeawaysPage() {
     const params = useParams();
     const router = useRouter();
     const id = params.id as string;
 
-    const [flashcards, setFlashcards] = useState<any[]>([]);
+    const [takeaways, setTakeaways] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [isFlipped, setIsFlipped] = useState(false);
     const [sift, setSift] = useState<any>(null);
     const [direction, setDirection] = useState(0); // -1 for prev, 1 for next
     const [isFinished, setIsFinished] = useState(false);
+    const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
     // Sounds
     const [playClick] = useSound('/audio/click.wav', { volume: 0.5 });
@@ -40,15 +42,14 @@ export default function FlashcardsPage() {
     useEffect(() => {
         const init = async () => {
             try {
-                const [siftData, cards] = await Promise.all([
-                    getSiftAction(id),
-                    getFlashcardsAction(id)
-                ]);
+                const siftData = await getSiftAction(id);
                 setSift(siftData);
-                setFlashcards(cards);
+                if (siftData?.takeaways) {
+                    setTakeaways(siftData.takeaways as any[]);
+                }
             } catch (e) {
                 console.error(e);
-                toast.error("Failed to load flashcards");
+                toast.error("Failed to load takeaways");
             } finally {
                 setLoading(false);
             }
@@ -57,10 +58,9 @@ export default function FlashcardsPage() {
     }, [id]);
 
     const handleNext = () => {
-        if (currentIndex < flashcards.length - 1) {
+        if (currentIndex < takeaways.length - 1) {
             playClick();
             setDirection(1);
-            setIsFlipped(false);
             setCurrentIndex(prev => prev + 1);
         } else {
             playSuccess();
@@ -72,41 +72,45 @@ export default function FlashcardsPage() {
         if (currentIndex > 0) {
             playClick();
             setDirection(-1);
-            setIsFlipped(false);
             setCurrentIndex(prev => prev - 1);
         }
-    };
-
-    const handleFlip = () => {
-        playClick();
-        setIsFlipped(!isFlipped);
     };
 
     const handleRestart = () => {
         setIsFinished(false);
         setCurrentIndex(0);
-        setIsFlipped(false);
         setDirection(0);
     };
 
+    const handleCopy = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const currentTakeaway = takeaways[currentIndex];
+        const text = `${currentTakeaway.title}\n\n${currentTakeaway.content}`;
+        navigator.clipboard.writeText(text);
+        setCopiedIndex(currentIndex);
+        toast.success("Copied to clipboard");
+        setTimeout(() => setCopiedIndex(null), 2000);
+    };
+
     // Keyboard Shortcuts
-    useHotkeys('space, enter, up, down', (e) => {
-        e.preventDefault(); // Prevent scrolling
-        if (!isFinished) handleFlip();
-    }, [isFlipped, isFinished]);
-    
     useHotkeys('right', () => {
         if (!isFinished) handleNext();
-    }, [currentIndex, flashcards.length, isFinished]);
+    }, [currentIndex, takeaways.length, isFinished]);
 
     useHotkeys('left', () => {
         if (!isFinished) handlePrev();
     }, [currentIndex, isFinished]);
 
+    // Added space/enter for next as well since there is no flip
+    useHotkeys('space, enter', (e) => {
+        e.preventDefault();
+        if (!isFinished) handleNext();
+    }, [currentIndex, takeaways.length, isFinished]);
+
     if (loading) return (
         <div className="flex h-screen w-full items-center justify-center flex-col gap-4">
             <HugeiconsIcon icon={Loading03Icon} className="animate-spin h-8 w-8 text-primary" />
-            <p className="text-muted-foreground font-medium animate-pulse">Loading flashcards...</p>
+            <p className="text-muted-foreground font-medium animate-pulse">Loading takeaways...</p>
         </div>
     );
 
@@ -117,7 +121,7 @@ export default function FlashcardsPage() {
         </div>
     );
 
-    const progress = ((currentIndex + 1) / flashcards.length) * 100;
+    const progress = ((currentIndex + 1) / takeaways.length) * 100;
 
     return (
         <div className="text-foreground flex flex-col mx-auto md:px-4 ">
@@ -130,12 +134,15 @@ export default function FlashcardsPage() {
                 <div className="flex flex-col items-center transition-all duration-300">
                     <div>
                         <h1 className="text-xl md:text-2xl text-foreground/70 font-semibold tracking-tight font-outfit line-clamp-1 transition-all duration-300">{sift.source?.title}</h1>
+                        {/* <p className="text-muted-foreground text-sm font-jakarta flex items-center gap-2">
+                            {takeaways.length} takeaways
+                        </p> */}
                     </div>
                 </div>
                 {!isFinished && (
                     <div className="flex flex-col items-end gap-2">
                         <span className="text-sm font-medium font-mono text-muted-foreground">
-                            {currentIndex + 1} / {flashcards.length} cards
+                            {currentIndex + 1} / {takeaways.length} cards
                         </span>
                     </div>
                 )}
@@ -147,7 +154,7 @@ export default function FlashcardsPage() {
             </div>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col items-center justify-center relative w-full max-w-3xl mx-auto perspective-1000 min-h-[300px]">
+            <main className="flex-1 flex flex-col items-center justify-center relative w-full max-w-3xl mx-auto min-h-[300px]">
                 <AnimatePresence mode="wait" custom={direction}>
                     {isFinished ? (
                          <motion.div 
@@ -162,7 +169,7 @@ export default function FlashcardsPage() {
                             </div>
                             <div className="space-y-2">
                                 <h2 className="text-2xl font-bold font-outfit">All Done!</h2>
-                                <p className="text-muted-foreground">You've reviewed all {flashcards.length} cards.</p>
+                                <p className="text-muted-foreground">You've reviewed all {takeaways.length} takeaways.</p>
                             </div>
                             <div className="flex items-center justify-center gap-3 w-full">
                                 <Button onClick={handleRestart} size="lg" className="w-fit gap-2 rounded-xl h-12 text-base px-4">
@@ -174,13 +181,13 @@ export default function FlashcardsPage() {
                                 </Button>
                             </div>
                         </motion.div>
-                    ) : flashcards.length === 0 ? (
+                    ) : takeaways.length === 0 ? (
                         <div className="text-center space-y-4 max-w-md">
                             <div className="bg-muted w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                 <HugeiconsIcon icon={Idea01Icon} className="w-8 h-8 text-muted-foreground" />
                             </div>
-                            <h2 className="text-xl font-semibold">No Flashcards Yet</h2>
-                            <p className="text-muted-foreground">Flashcards are being generated in the background. Check back soon!</p>
+                            <h2 className="text-xl font-semibold">No Takeaways Yet</h2>
+                            <p className="text-muted-foreground">Takeaways are being generated in the background. Check back soon!</p>
                             <Button onClick={() => router.refresh()} variant="outline" size="lg" className="w-full gap-2 mt-4">
                                 <HugeiconsIcon icon={Loading03Icon} className="w-5 h-5" />
                                 Refresh Status
@@ -190,34 +197,42 @@ export default function FlashcardsPage() {
                         <motion.div
                             key={currentIndex}
                             custom={direction}
-                            initial={{ opacity: 0, x: direction * 50, rotateY: 0 }}
-                            animate={{ opacity: 1, x: 0, rotateY: isFlipped ? 180 : 0 }}
-                            exit={{ opacity: 0, x: direction * -50, rotateY: 0 }} // Don't flip on exit
+                            initial={{ opacity: 0, x: direction * 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: direction * -50 }}
                             transition={{ duration: 0.4, ease: "backOut" }}
-                            className="w-full aspect-[3/2] md:aspect-[16/9] relative preserve-3d cursor-pointer group"
-                            onClick={handleFlip}
+                            className="w-full aspect-[3/2] md:aspect-[16/9] relative cursor-pointer group"
+                            onClick={handleNext} // Clicking card goes to next
                         >
-                            {/* Front */}
-                            <div className="absolute inset-0 backface-hidden w-full h-full">
-                                <div className="w-full h-full bg-card border rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center hover:border-border transition-colors duration-300">
-                                    <span className="text-xs font-bold tracking-widest text-muted-foreground/50 uppercase mb-6">Question</span>
-                                    <p className="text-2xl md:text-3xl lg:text-4xl font-medium font-outfit leading-tight">
-                                        {flashcards[currentIndex].front}
-                                    </p>
-                                    <div className="absolute bottom-6 flex items-center gap-2 text-xs font-medium text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span className="border px-1.5 py-0.5 rounded text-[10px]">SPACE</span>
-                                        <span>to flip</span>
-                                    </div>
+                            <div className="w-full h-full bg-card border rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center hover:border-border transition-colors duration-300 relative">
+                                <div className="absolute top-6 right-6">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                        onClick={handleCopy}
+                                    >
+                                        {copiedIndex === currentIndex ? (
+                                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4 text-green-500" />
+                                        ) : (
+                                            <HugeiconsIcon icon={Copy01Icon} className="h-4 w-4" />
+                                        )}
+                                    </Button>
                                 </div>
-                            </div>
 
-                            {/* Back */}
-                            <div className="absolute inset-0 bg-background backface-hidden w-full h-full rotate-y-180">
-                                <div className="w-full h-full bg-muted/30 border-2 border-primary/10 rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center">
-                                    <span className="text-xs font-bold tracking-widest text-primary/60 uppercase mb-6">Answer</span>
-                                    <p className="text-xl md:text-2xl lg:text-3xl font-medium font-jakarta leading-relaxed text-foreground/90">
-                                        {flashcards[currentIndex].back}
+                                {/* <span className="text-xs font-bold tracking-widest text-primary/60 uppercase mb-6">Takeaway {currentIndex + 1}</span> */}
+                                <div className="space-y-4 max-w-2xl">
+                                    <h3 className="text-2xl md:text-3xl font-medium font-outfit leading-tight">
+                                        {takeaways[currentIndex].title}
+                                    </h3>
+                                    <p className="text-lg md:text-xl text-muted-foreground font-jakarta leading-relaxed">
+                                        {takeaways[currentIndex].content}
                                     </p>
+                                </div>
+                                
+                                <div className="absolute bottom-6 flex items-center gap-2 text-xs font-medium text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span className="border px-1.5 py-0.5 rounded text-[10px]">SPACE</span>
+                                    <span>for next</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -226,8 +241,8 @@ export default function FlashcardsPage() {
             </main>
 
             {/* Controls */}
-            {!isFinished && flashcards.length > 0 && (
-                <div className="mt-8 flex items-center justify-center gap-4 md:gap-8">
+            {!isFinished && takeaways.length > 0 && (
+                <div className="mt-8 flex items-center justify-center gap-4">
                     <Button 
                         variant="outline" 
                         size="icon" 
@@ -239,31 +254,28 @@ export default function FlashcardsPage() {
                     </Button>
                     
                     <Button 
-                        size="lg" 
-                        className="h-12 px-8 rounded-xl text-base font-medium min-w-[140px]" 
-                        onClick={handleFlip}
+                        size="lg"
+                        variant="outline"
+                        className="h-12 px-5 rounded-xl text-base font-medium gap-2" 
+                        onClick={handleNext}
                     >
-                        {isFlipped ? "Show Question" : "Show Answer"}
+                        Next
+                        <HugeiconsIcon icon={ArrowRight01Icon} className="size-5" />
                     </Button>
 
-                    <Button 
-                        variant="outline" 
-                        size="icon" 
-                        className="h-12 w-12 rounded-xl border" 
-                        onClick={handleNext}
-                        disabled={false} // Always enabled to allow finishing
-                    >
-                         <HugeiconsIcon icon={ArrowRight01Icon} className="size-5" />
-                    </Button>
+                    {/* Placeholder for symmetry or secondary action if needed, otherwise hidden on mobile or just removed. 
+                        To match Flashcards strictly (3 buttons), I could add a Copy button here, or just stick to 2 since 'Flip' is gone.
+                        The user said 'no need for front and back', so 2 buttons + copy on card seems best.
+                    */}
                 </div>
             )}
              
             {/* Keyboard Hints */}
-            {!isFinished && flashcards.length > 0 && (
+            {!isFinished && takeaways.length > 0 && (
                 <div className="mt-8 text-center hidden md:block">
                      <div className="inline-flex items-center gap-6 text-xs text-muted-foreground/60">
                         <span className="flex items-center gap-1.5"><kbd className="border px-1.5 py-0.5 rounded bg-muted/50 font-sans">←</kbd> Prev</span>
-                        <span className="flex items-center gap-1.5"><kbd className="border px-1.5 py-0.5 rounded bg-muted/50 font-sans">SPACE</kbd> Flip</span>
+                        <span className="flex items-center gap-1.5"><kbd className="border px-1.5 py-0.5 rounded bg-muted/50 font-sans">SPACE</kbd> Next</span>
                         <span className="flex items-center gap-1.5"><kbd className="border px-1.5 py-0.5 rounded bg-muted/50 font-sans">→</kbd> Next</span>
                      </div>
                 </div>

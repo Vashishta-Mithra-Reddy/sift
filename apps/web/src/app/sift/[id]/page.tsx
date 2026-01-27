@@ -7,7 +7,7 @@ import { getSiftAction, getSiftSessionsAction, deleteSessionAction, updateSiftAc
 import { getLearningPathForSiftAction, generateNextModuleAction } from "../../learn/actions";
 import { Streamdown } from "streamdown";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, PlayIcon, Time01Icon, ChartHistogramIcon, Delete01Icon, Target02Icon, StarIcon, TrendingUp, MoreVerticalIcon, Globe02Icon, SquareLock02Icon, Archive02Icon, Idea01Icon, Book01Icon, ArrowRightIcon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, PlayIcon, Time01Icon, ChartHistogramIcon, Delete01Icon, Target02Icon, StarIcon, TrendingUp, MoreVerticalIcon, Globe02Icon, SquareLock02Icon, Archive02Icon, Idea01Icon, Book01Icon, ArrowRightIcon, Layers01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -334,10 +334,6 @@ export default function SiftSessionPage() {
                                 <HugeiconsIcon icon={PlayIcon} className="h-6 w-6 fill-current" />
                                 {sift.sections && sift.sections.length > 0 ? "Practice Quiz" : "Start New Quiz"}
                             </Button>
-                            <Button size="lg" variant="secondary" className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-8 h-12 gap-2" onClick={() => router.push(`/sift/${id}/flashcards`)}>
-                                <HugeiconsIcon icon={Idea01Icon} className="h-6 w-6 fill-current" />
-                                Flashcards
-                            </Button>
                         </div>
                     </div>
                 </Card>
@@ -353,7 +349,7 @@ export default function SiftSessionPage() {
                                 </div>
                                 <h3 className="text-lg font-bold">{learningPath.title}</h3>
                                 <p className="text-sm text-muted-foreground">
-                                    {learningPath.sifts.find((s: any) => s.siftId === id)?.order + 1} of {learningPath.sifts.length} modules completed
+                                   Module {learningPath.sifts.find((s: any) => s.siftId === id)?.order + 1} of {learningPath.sifts.length}
                                 </p>
                             </div>
                             
@@ -396,6 +392,51 @@ export default function SiftSessionPage() {
                             </div>
                         </div>
                     </Card>
+                )}
+
+                {/* Study Tools Grid */}
+                {sift.takeaways && (sift.takeaways as any[]).length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-jakarta">
+                        <Card 
+                            className="p-6 border-primary/10 hover:border-primary/30 transition-all cursor-pointer group active:scale-[0.98] duration-200"
+                            onClick={() => router.push(`/sift/${id}/takeaways`)}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform duration-300">
+                                    <HugeiconsIcon icon={Idea01Icon} className="h-6 w-6" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-bold text-lg leading-none">Key Takeaways</h3>
+                                    <p className="text-sm text-muted-foreground group-hover:text-primary/80 transition-colors">
+                                        Review core concepts
+                                    </p>
+                                </div>
+                                <div className="ml-auto text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300">
+                                    <HugeiconsIcon icon={ArrowRightIcon} className="h-5 w-5" />
+                                </div>
+                            </div>
+                        </Card>
+
+                        <Card 
+                            className="p-6 border-primary/10 hover:border-primary/30 transition-all cursor-pointer group active:scale-[0.98] duration-200"
+                            onClick={() => router.push(`/sift/${id}/flashcards`)}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform duration-300">
+                                    <HugeiconsIcon icon={Layers01Icon} className="h-6 w-6" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-bold text-lg leading-none">Flashcards</h3>
+                                    <p className="text-sm text-muted-foreground group-hover:text-primary/80 transition-colors">
+                                        Spaced repetition practice
+                                    </p>
+                                </div>
+                                <div className="ml-auto text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300">
+                                    <HugeiconsIcon icon={ArrowRightIcon} className="h-5 w-5" />
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
                 )}
 
                     {/* Stats & Charts Row */}

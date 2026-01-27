@@ -3,7 +3,7 @@
 import { createSource, getSources, deleteSource } from "@sift/auth/actions/sources";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { createSift, addQuestions, addSections } from "@sift/auth/actions/sifts";
+import { createSift, addQuestions, addSections, updateSiftTakeaways } from "@sift/auth/actions/sifts";
 import { addFlashcards } from "@sift/auth/actions/flashcards";
 import { createLearningPath, addSiftToPath, updatePathSummary } from "@sift/auth/actions/learning-paths";
 import { processSiftContent } from "@/lib/content-processor";
@@ -128,12 +128,14 @@ export async function createImportedSourceAction(title: string, data: any) {
     // Handle new format: { questions: [], flashcards: [] } or old format: [questions]
     let questions = [];
     let flashcards = [];
+    let takeaways = [];
 
     if (Array.isArray(data)) {
         questions = data;
     } else {
         questions = data.questions || [];
         flashcards = data.flashcards || [];
+        takeaways = data.takeaways || [];
     }
 
     // Create source
@@ -167,6 +169,12 @@ export async function createImportedSourceAction(title: string, data: any) {
         await addFlashcards(siftId, validFlashcards, headerStore);
     }
     
+    // Add Takeaways
+    const validTakeaways = takeaways.filter((t: any) => t && typeof t.title === 'string' && typeof t.content === 'string');
+    if (validTakeaways.length > 0) {
+        await updateSiftTakeaways(siftId, validTakeaways, headerStore);
+    }
+
     return { sourceId, siftId };
 }
 
@@ -177,6 +185,7 @@ export async function createImportedLearningPathAction(title: string, data: any)
     const sections = Array.isArray(data) ? data : (data.sections || []);
     const summary = !Array.isArray(data) ? data.summary : null;
     const flashcards = !Array.isArray(data) ? data.flashcards : null;
+    const takeaways = !Array.isArray(data) ? data.takeaways : null;
 
     // 1. Create the Learning Path Container
     const learningPath = await createLearningPath(title, headerStore);
@@ -247,6 +256,14 @@ export async function createImportedLearningPathAction(title: string, data: any)
         const validFlashcards = flashcards.filter((f: any) => f && typeof f.front === 'string' && typeof f.back === 'string');
         if (validFlashcards.length > 0) {
             await addFlashcards(siftId, validFlashcards, headerStore);
+        }
+    }
+
+    // 8. Save Takeaways if present
+    if (takeaways && Array.isArray(takeaways) && takeaways.length > 0) {
+        const validTakeaways = takeaways.filter((t: any) => t && typeof t.title === 'string' && typeof t.content === 'string');
+        if (validTakeaways.length > 0) {
+            await updateSiftTakeaways(siftId, validTakeaways, headerStore);
         }
     }
     

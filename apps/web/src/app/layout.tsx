@@ -11,10 +11,10 @@ import MobileBottomNav from "@/components/blocks/MobileBottomNav";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -43,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${jakarta.variable} ${outfit.variable} antialiased relative`}>
+      <body className={`${geistMono.variable} ${jakarta.variable} ${outfit.variable} antialiased relative`}>
         {/* Global Hatching Pattern Background */}
         {/* <div className="fixed inset-0 -z-50 h-full w-full bg-white dark:bg-black pointer-events-none">
           <div className="absolute h-full w-full bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#00000008_10px,#00000008_11px)] dark:bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#ffffff08_10px,#ffffff08_11px)]" />

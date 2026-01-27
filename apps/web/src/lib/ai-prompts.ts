@@ -19,6 +19,12 @@ Output Format: JSON Object
       "front": "Concept or Question",
       "back": "Definition or Answer"
     }
+  ],
+  "takeaways": [
+    {
+      "title": "Key Concept Title",
+      "content": "Brief summary of the key point."
+    }
   ]
 }
 
@@ -28,7 +34,8 @@ Rules:
 3. Ensure there is only one correct answer for MCQs.
 4. Keep explanations concise but helpful.
 5. Generate 5-10 flashcards that cover key terms and definitions.
-6. Output ONLY the JSON object, no other text.`;
+6. Generate 3-5 key takeaways that summarize the most important points.
+7. Output ONLY the JSON object, no other text.`;
 
 
 export const LEARNING_PATH_SYSTEM_PROMPT = `You are Sift AI, an expert teacher.
@@ -58,6 +65,12 @@ Output Format: JSON Object
       "front": "Concept or Question",
       "back": "Definition or Answer"
     }
+  ],
+  "takeaways": [
+    {
+      "title": "Key Concept Title",
+      "content": "Brief summary of the key point."
+    }
   ]
 }
 
@@ -67,6 +80,7 @@ Rules:
 3. Questions must strictly have 4 options.
 4. Content should be concise but sufficient to answer the questions.
 5. Generate 5-10 flashcards based on the content of the sections.
-6. Output ONLY the JSON object, no other text.`;
+6. Generate 3-5 key takeaways that summarize the entire module.
+7. Output ONLY the JSON object, no other text.`;
 
 

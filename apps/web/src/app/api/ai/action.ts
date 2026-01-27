@@ -2,7 +2,7 @@
 
 import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
-import { addQuestions, addSections, updateSiftSummary } from "@sift/auth/actions/sifts";
+import { addQuestions, addSections, updateSiftSummary, updateSiftTakeaways } from "@sift/auth/actions/sifts";
 import { getLearningPath, updatePathSummary } from "@sift/auth/actions/learning-paths";
 import { addFlashcards } from "@sift/auth/actions/flashcards";
 import { headers } from "next/headers";
@@ -109,6 +109,11 @@ export async function generateQuestionsAction(siftId: string, content: string, m
                      await addFlashcards(siftId, parsedData.flashcards, headerStore);
                 }
 
+                // Save Takeaways
+                if (parsedData.takeaways && Array.isArray(parsedData.takeaways) && parsedData.takeaways.length > 0) {
+                     await updateSiftTakeaways(siftId, parsedData.takeaways, headerStore);
+                }
+
                 // Update Path Summary
                 if (pathId && parsedData.summary) {
                     await updatePathSummary(pathId, parsedData.summary, headerStore);
@@ -125,12 +130,14 @@ export async function generateQuestionsAction(siftId: string, content: string, m
                 // Handle legacy array format if AI messes up
                 let questionsData = [];
                 let flashcardsData = [];
+                let takeawaysData = [];
 
                 if (Array.isArray(parsedData)) {
                     questionsData = parsedData;
                 } else {
                     questionsData = parsedData.questions || [];
                     flashcardsData = parsedData.flashcards || [];
+                    takeawaysData = parsedData.takeaways || [];
                 }
 
                 // Save Questions
@@ -142,6 +149,11 @@ export async function generateQuestionsAction(siftId: string, content: string, m
                 // Save Flashcards
                 if (flashcardsData.length > 0) {
                     await addFlashcards(siftId, flashcardsData, headerStore);
+                }
+
+                // Save Takeaways
+                if (takeawaysData.length > 0) {
+                     await updateSiftTakeaways(siftId, takeawaysData, headerStore);
                 }
                 
                 // Generate Summary if not present (optional, can be done via separate call/prompt if needed)

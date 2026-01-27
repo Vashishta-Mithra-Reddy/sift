@@ -30,7 +30,7 @@ export default function Header({ authButton }: HeaderProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (pathname?.includes("/flashcards")) return null;
+  if (pathname?.includes("/flashcards") || pathname?.includes("/takeaways")) return null;
 
   const filteredNavItems = NAVIGATION_ITEMS.filter((item) => {
     if (item.hideOnDesktop) return false;

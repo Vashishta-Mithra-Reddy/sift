@@ -155,7 +155,7 @@ export default function LearningPathDetailsPage() {
 
                         {/* Card */}
                         <Card 
-                            className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-0 overflow-hidden transition-all cursor-pointer border-border/60 bg-card/40 backdrop-blur-sm group-hover:border-primary/20 gap-0"
+                            className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-0 overflow-hidden transition-all cursor-pointer border-border/60 bg-card/40 backdrop-blur-sm border group-hover:border-foreground/30 gap-0"
                             onClick={() => router.push(`/sift/${item.siftId}`)}
                         >
                             <CardHeader className="p-4 pb-2">

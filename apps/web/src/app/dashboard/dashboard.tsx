@@ -103,7 +103,7 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={isDeleting}
             >
-              {isDeleting && <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />}
+              {isDeleting && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

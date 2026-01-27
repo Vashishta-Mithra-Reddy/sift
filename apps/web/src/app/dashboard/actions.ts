@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
 import { createSift, addQuestions, addSections } from "@sift/auth/actions/sifts";
-import { createLearningPath, addSiftToPath } from "@sift/auth/actions/learning-paths";
+import { createLearningPath, addSiftToPath, updatePathSummary } from "@sift/auth/actions/learning-paths";
 import { processSiftContent } from "@/lib/content-processor";
 import { generateQuestionsAction } from "@/app/api/ai/action";
 import { after } from "next/server";
@@ -151,8 +151,12 @@ export async function createImportedSourceAction(title: string, questions: any[]
     return { sourceId, siftId };
 }
 
-export async function createImportedLearningPathAction(title: string, sections: any[]) {
+export async function createImportedLearningPathAction(title: string, data: any) {
     const headerStore = await headers();
+
+    // Handle new format: { summary, sections: [] } or old format: [sections]
+    const sections = Array.isArray(data) ? data : (data.sections || []);
+    const summary = !Array.isArray(data) ? data.summary : null;
 
     // 1. Create the Learning Path Container
     const learningPath = await createLearningPath(title, headerStore);
@@ -162,7 +166,7 @@ export async function createImportedLearningPathAction(title: string, sections: 
         title,
         fileName: "imported-learning-path.json",
         type: "json",
-        content: JSON.stringify(sections),
+        content: JSON.stringify(data),
         isPasted: true,
         metadata: {
             source: "import",
@@ -173,6 +177,7 @@ export async function createImportedLearningPathAction(title: string, sections: 
     // 3. Create Sift for the first module
     const siftId = await createSift({
         sourceId,
+        summary: summary, // Save summary to sift if available
         config: {
             method: "import",
             isLearningPath: true
@@ -181,6 +186,11 @@ export async function createImportedLearningPathAction(title: string, sections: 
 
     // 4. Link Sift to Learning Path
     await addSiftToPath(learningPath.id, siftId, headerStore);
+
+    // Update Path Summary if available
+    if (summary) {
+        await updatePathSummary(learningPath.id, summary, headerStore);
+    }
 
     // 5. Save sections first to get IDs
     const sectionsToSave = sections.map((s: any, index: number) => ({

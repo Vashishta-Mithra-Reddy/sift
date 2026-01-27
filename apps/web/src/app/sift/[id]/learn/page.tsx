@@ -60,6 +60,7 @@ export default function LearningPathPage() {
     // Completion State
     const [completed, setCompleted] = useState(false);
     const [correctCount, setCorrectCount] = useState(0);
+    const correctCountRef = useRef(0); // Ref for synchronous access during completion
     const [performanceData, setPerformanceData] = useState<{ topic: string, level: number }[]>([]);
 
     // Sounds
@@ -141,6 +142,47 @@ export default function LearningPathPage() {
         }
     }, [selectedOption, playSuccess, playNotification, currentSectionIndex, currentQuestionIndex, sift]);
 
+    const advanceSection = useCallback(async (newPerformanceEntry?: { topic: string, level: number }) => {
+        if (!sift || !sift.sections) return;
+        
+        if (currentSectionIndex < sift.sections.length - 1) {
+            setCurrentSectionIndex(prev => prev + 1);
+            setViewState('content');
+            setSelectedOption(null);
+            setShowAnswer(false);
+        } else {
+            // End of Learning Path
+            try {
+                // Calculate final score using Ref for synchronous accuracy
+                const totalQuestions = sift.sections.reduce((acc, sec) => acc + (sec.questions?.length || 0), 0);
+                const finalScore = totalQuestions > 0 ? Math.round((correctCountRef.current / totalQuestions) * 100) : 100;
+
+                if (sessionId) {
+                    await completeSessionAction(sessionId, finalScore);
+                    
+                    if (sift.sourceId) {
+                         const finalPerformanceData = newPerformanceEntry 
+                            ? [...performanceData, newPerformanceEntry] 
+                            : performanceData;
+                         await batchUpdateEchoesAction(sift.sourceId, finalPerformanceData);
+                    }
+                }
+
+                // Calculate duration
+                const timeTaken = Date.now() - startTime.current;
+                const minutes = Math.floor(timeTaken / 60000);
+                const seconds = Math.floor((timeTaken % 60000) / 1000);
+                setDuration(`${minutes}m ${seconds}s`);
+                
+                setCompleted(true);
+                playSuccess();
+            } catch (error) {
+                console.error("Failed to complete session", error);
+                toast.error("Failed to save progress");
+            }
+        }
+    }, [sift, currentSectionIndex, sessionId, performanceData, playSuccess]);
+
     const handleNext = useCallback(async () => {
         if (!sift || !sift.sections) return;
         const section = sift.sections[currentSectionIndex];
@@ -180,6 +222,7 @@ export default function LearningPathPage() {
             // Update State
             if (isCorrect) {
                 setCorrectCount(prev => prev + 1);
+                correctCountRef.current += 1; // Update ref synchronously
             }
 
             // Save Answer
@@ -211,48 +254,10 @@ export default function LearningPathPage() {
             } else {
                 // Finished quiz for this section
                 setProcessing(false); // Reset processing before changing view
-                advanceSection();
+                advanceSection(newPerformanceEntry);
             }
         }
-    }, [sift, currentSectionIndex, viewState, processing, currentQuestionIndex, selectedOption, sessionId, playClick, performanceData]);
-
-    const advanceSection = useCallback(async () => {
-        if (!sift || !sift.sections) return;
-        
-        if (currentSectionIndex < sift.sections.length - 1) {
-            setCurrentSectionIndex(prev => prev + 1);
-            setViewState('content');
-            setSelectedOption(null);
-            setShowAnswer(false);
-        } else {
-            // End of Learning Path
-            try {
-                // Calculate final score
-                const totalQuestions = sift.sections.reduce((acc, sec) => acc + (sec.questions?.length || 0), 0);
-                const finalScore = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 100;
-
-                if (sessionId) {
-                    await completeSessionAction(sessionId, finalScore);
-                    
-                    if (sift.sourceId) {
-                         await batchUpdateEchoesAction(sift.sourceId, performanceData);
-                    }
-                }
-
-                // Calculate duration
-                const timeTaken = Date.now() - startTime.current;
-                const minutes = Math.floor(timeTaken / 60000);
-                const seconds = Math.floor((timeTaken % 60000) / 1000);
-                setDuration(`${minutes}m ${seconds}s`);
-                
-                setCompleted(true);
-                playSuccess();
-            } catch (error) {
-                console.error("Failed to complete session", error);
-                toast.error("Failed to save progress");
-            }
-        }
-    }, [sift, currentSectionIndex, sessionId, correctCount, performanceData, playSuccess]);
+    }, [sift, currentSectionIndex, viewState, processing, currentQuestionIndex, selectedOption, sessionId, playClick, performanceData, advanceSection]);
 
     // Keyboard Shortcuts
     useEffect(() => {
@@ -420,7 +425,10 @@ export default function LearningPathPage() {
     const totalSections = sift.sections.length;
     // Calculate progress
     const sectionProgress = currentSectionIndex / totalSections;
-    const subProgress = viewState === 'quiz' ? ((currentQuestionIndex + 1) / (section.questions.length + 1)) : 0;
+    // Add +1 to subProgress steps to visually indicate "started" status of current step
+    const subProgress = viewState === 'quiz' 
+        ? ((currentQuestionIndex + 2) / (section.questions.length + 1)) 
+        : (1 / (section.questions.length + 1));
     const progress = (sectionProgress + (subProgress / totalSections)) * 100;
 
     const currentQuestion = section.questions[currentQuestionIndex];

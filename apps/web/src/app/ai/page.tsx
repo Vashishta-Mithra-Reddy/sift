@@ -24,6 +24,7 @@ export default function AIPage() {
   const [jsonInput, setJsonInput] = useState("");
   const [importTitle, setImportTitle] = useState("");
   const [isImporting, setIsImporting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // Global loading state for generation + saving
 
   // Direct Generate State
   const [topic, setTopic] = useState("");
@@ -75,11 +76,13 @@ export default function AIPage() {
         } catch (e) {
             console.error(e);
             toast.error("Failed to parse AI response. Try again.");
+            setIsProcessing(false);
         }
     },
     onError: (err) => {
         console.error("Generation error:", err);
         toast.error("Failed to generate content. Please try again.");
+        setIsProcessing(false);
     }
   });
 
@@ -94,11 +97,13 @@ export default function AIPage() {
     if (planMode) {
         generatePlan(topic);
     } else {
+        setIsProcessing(true);
         generateQuestions(topic);
     }
   };
 
   const handleContinueWithPlan = () => {
+      setIsProcessing(true);
       generateQuestions(plan);
   };
 
@@ -122,12 +127,14 @@ export default function AIPage() {
         }
         
         setIsImporting(true);
+        setIsProcessing(true);
         const { siftId } = await createImportedSourceAction(importTitle, questions);
         toast.success("Questions imported successfully");
         router.push(`/sift/${siftId}`);
     } catch (e) {
         console.error(e);
         toast.error("Invalid JSON format");
+        setIsProcessing(false);
     } finally {
         setIsImporting(false);
     }
@@ -250,7 +257,7 @@ export default function AIPage() {
                                     <HugeiconsIcon icon={MagicWand01Icon} className="h-5 w-5" />
                                     <span className="font-medium">{learnMode ? "Generating Learning Path..." : "Generating Questions..."}</span>
                                 </div>
-                                <div className="p-4 rounded-lg border bg-muted/50 max-h-[200px] overflow-hidden opacity-50 text-xs font-mono">
+                                <div className="p-4 rounded-lg border bg-muted/50 overflow-hidden opacity-50 text-xs font-mono">
                                     {questionsStream}
                                 </div>
                             </div>
@@ -330,6 +337,33 @@ export default function AIPage() {
                 </Card>
             </TabsContent>
         </Tabs>
+
+        {/* Global Loading Overlay */}
+        {isProcessing && (
+            <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
+                <div className="flex flex-col items-center space-y-6 text-center max-w-md animate-in fade-in zoom-in duration-300 p-8 rounded-xl border bg-card">
+                    <div className="relative flex items-center justify-center">
+                        <div className="h-16 w-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <HugeiconsIcon icon={MagicWand01Icon} className="h-6 w-6 text-primary animate-pulse" />
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <h3 className="text-xl font-semibold tracking-tight">
+                            {isImporting ? "Importing Content..." :
+                             isGeneratingQuestions ? (learnMode ? "Building Learning Path..." : "Generating Questions...") :
+                             "Finalizing & Redirecting..."}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                            {isImporting ? "Parsing data and creating your Sift." :
+                             isGeneratingQuestions ? "This may take up to 30 seconds. Please don't close this tab." :
+                             "Saving your new Sift and preparing the environment."}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
   );
 }

@@ -262,7 +262,7 @@ export default function SiftPlayPage() {
 
   if (loading) {
     return (
-        <div className="flex h-screen items-center justify-center flex-col gap-4">
+        <div className="flex h-full items-center justify-center flex-col gap-4">
             <HugeiconsIcon icon={Loading03Icon} className="h-10 w-10 animate-spin text-primary" />
             <p className="text-muted-foreground animate-pulse">Starting session...</p>
         </div>
@@ -553,7 +553,7 @@ export default function SiftPlayPage() {
                         )}
                     </div>
 
-                    <div className={cn("pt-6 flex items-center justify-between", showAnswer ? "pt-4" : "")}>
+                    <div className={cn("pt-0 flex items-center justify-between", showAnswer ? "pt-2" : "")}>
                         <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
                             <HugeiconsIcon icon={KeyboardIcon} className="h-4 w-4" />
                             <span>Press <kbd className="bg-muted px-1 rounded border">A-D</kbd> to select, <kbd className="bg-muted px-1 rounded border">Enter</kbd> to confirm</span>
@@ -563,7 +563,7 @@ export default function SiftPlayPage() {
                             {!showAnswer ? (
                                 <Button 
                                     size="lg" 
-                                    className="w-full md:w-auto text-base h-12 px-8 transition-all" 
+                                    className="w-full md:w-auto text-base h-12 px-8 transition-all rounded-xl" 
                                     onClick={handleCheckAnswer}
                                     disabled={!selectedOption}
                                 >
@@ -572,7 +572,7 @@ export default function SiftPlayPage() {
                             ) : (
                                 <Button 
                                     size="lg" 
-                                    className="w-full md:w-auto text-base h-12 px-8 gap-2 transition-all"
+                                    className="w-full md:w-auto text-base h-12 px-8 gap-2 transition-all rounded-xl"
                                     onClick={handleNext}
                                     disabled={processing}
                                 >

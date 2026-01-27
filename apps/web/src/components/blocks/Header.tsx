@@ -8,6 +8,7 @@ import Link from "next/link";
 import { NAVIGATION_ITEMS } from "@/app/config/navigation";
 import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/user-menu";
+import { usePathname } from "next/navigation";
 // import { NotificationCenter } from "../notifications/notification-center";
 
 interface HeaderProps {
@@ -17,6 +18,7 @@ interface HeaderProps {
 export default function Header({ authButton }: HeaderProps) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
   
   const { data: session } = authClient.useSession();
 
@@ -27,6 +29,8 @@ export default function Header({ authButton }: HeaderProps) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  if (pathname?.includes("/flashcards")) return null;
 
   const filteredNavItems = NAVIGATION_ITEMS.filter((item) => {
     if (item.hideOnDesktop) return false;

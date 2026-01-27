@@ -1,0 +1,275 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { getFlashcardsAction, getSiftAction } from "../../actions";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { 
+    ArrowLeft01Icon, 
+    ArrowRight01Icon, 
+    Loading03Icon,
+    Idea01Icon,
+    Tick02Icon,
+    RepeatIcon,
+    ArrowLeft02Icon
+} from "@hugeicons/core-free-icons";
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+import { useHotkeys } from "react-hotkeys-hook";
+import useSound from "use-sound";
+
+export default function FlashcardsPage() {
+    const params = useParams();
+    const router = useRouter();
+    const id = params.id as string;
+
+    const [flashcards, setFlashcards] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isFlipped, setIsFlipped] = useState(false);
+    const [sift, setSift] = useState<any>(null);
+    const [direction, setDirection] = useState(0); // -1 for prev, 1 for next
+    const [isFinished, setIsFinished] = useState(false);
+
+    // Sounds
+    const [playClick] = useSound('/audio/click.wav', { volume: 0.5 });
+    const [playSuccess] = useSound('/audio/success.mp3', { volume: 0.5 });
+
+    useEffect(() => {
+        const init = async () => {
+            try {
+                const [siftData, cards] = await Promise.all([
+                    getSiftAction(id),
+                    getFlashcardsAction(id)
+                ]);
+                setSift(siftData);
+                setFlashcards(cards);
+            } catch (e) {
+                console.error(e);
+                toast.error("Failed to load flashcards");
+            } finally {
+                setLoading(false);
+            }
+        };
+        init();
+    }, [id]);
+
+    const handleNext = () => {
+        if (currentIndex < flashcards.length - 1) {
+            playClick();
+            setDirection(1);
+            setIsFlipped(false);
+            setCurrentIndex(prev => prev + 1);
+        } else {
+            playSuccess();
+            setIsFinished(true);
+        }
+    };
+
+    const handlePrev = () => {
+        if (currentIndex > 0) {
+            playClick();
+            setDirection(-1);
+            setIsFlipped(false);
+            setCurrentIndex(prev => prev - 1);
+        }
+    };
+
+    const handleFlip = () => {
+        playClick();
+        setIsFlipped(!isFlipped);
+    };
+
+    const handleRestart = () => {
+        setIsFinished(false);
+        setCurrentIndex(0);
+        setIsFlipped(false);
+        setDirection(0);
+    };
+
+    // Keyboard Shortcuts
+    useHotkeys('space, enter, up, down', (e) => {
+        e.preventDefault(); // Prevent scrolling
+        if (!isFinished) handleFlip();
+    }, [isFlipped, isFinished]);
+    
+    useHotkeys('right', () => {
+        if (!isFinished) handleNext();
+    }, [currentIndex, flashcards.length, isFinished]);
+
+    useHotkeys('left', () => {
+        if (!isFinished) handlePrev();
+    }, [currentIndex, isFinished]);
+
+    if (loading) return (
+        <div className="flex h-screen w-full items-center justify-center flex-col gap-4">
+            <HugeiconsIcon icon={Loading03Icon} className="animate-spin h-8 w-8 text-primary" />
+            <p className="text-muted-foreground font-medium animate-pulse">Loading flashcards...</p>
+        </div>
+    );
+
+    if (!sift) return (
+        <div className="flex h-full w-full items-center justify-center flex-col gap-4">
+            <p className="text-muted-foreground">Sift not found</p>
+            <Button onClick={() => router.push('/dashboard')}>Go Home</Button>
+        </div>
+    );
+
+    const progress = ((currentIndex + (isFinished ? 1 : 0)) / flashcards.length) * 100;
+
+    return (
+        <div className="text-foreground flex flex-col mx-auto md:px-4 ">
+            {/* Header */}
+            <header className="bg-background flex items-center justify-between mb-8 md:mb-12">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted" onClick={() => router.push(`/sift/${id}`)}>
+                        <HugeiconsIcon icon={ArrowLeft02Icon} className="h-5 w-5" />
+                    </Button>
+                    <div>
+                        <h1 className="text-xl md:text-2xl font-semibold tracking-tight font-outfit">{sift.source?.title}</h1>
+                        <p className="text-muted-foreground text-sm font-jakarta">
+                            {flashcards.length} cards
+                        </p>
+                    </div>
+                </div>
+                {!isFinished && (
+                    <div className="flex flex-col items-end gap-2">
+                        <span className="text-sm font-medium font-mono text-muted-foreground">
+                            {currentIndex + 1} / {flashcards.length}
+                        </span>
+                    </div>
+                )}
+            </header>
+
+            {/* Progress Bar */}
+            <div className="w-full max-w-2xl mx-auto mb-8">
+                <Progress value={progress} className="h-1.5" />
+            </div>
+
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col items-center justify-center relative w-full max-w-3xl mx-auto perspective-1000 min-h-[300px]">
+                <AnimatePresence mode="wait" custom={direction}>
+                    {isFinished ? (
+                         <motion.div 
+                            key="finished"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="text-center aspect-[3/2] md:aspect-[16/9] space-y-6 w-full h-full bg-card border rounded-3xl p-12 flex flex-col items-center justify-center"
+                        >
+                            <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-primary/5">
+                                <HugeiconsIcon icon={Tick02Icon} className="w-10 h-10 text-primary" />
+                            </div>
+                            <div className="space-y-2">
+                                <h2 className="text-2xl font-bold font-outfit">All Done!</h2>
+                                <p className="text-muted-foreground">You've reviewed all {flashcards.length} cards.</p>
+                            </div>
+                            <div className="flex items-center justify-center gap-3 w-full">
+                                <Button onClick={handleRestart} size="lg" className="w-fit gap-2 rounded-xl h-12 text-base px-4">
+                                    <HugeiconsIcon icon={RepeatIcon} className="w-5 h-5" />
+                                    Review Again
+                                </Button>
+                                <Button onClick={() => router.push(`/sift/${id}`)} variant="outline" size="lg" className="w-fit rounded-xl h-12 text-base px-4">
+                                    Back to Sift
+                                </Button>
+                            </div>
+                        </motion.div>
+                    ) : flashcards.length === 0 ? (
+                        <div className="text-center space-y-4 max-w-md">
+                            <div className="bg-muted w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <HugeiconsIcon icon={Idea01Icon} className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                            <h2 className="text-xl font-semibold">No Flashcards Yet</h2>
+                            <p className="text-muted-foreground">Flashcards are being generated in the background. Check back soon!</p>
+                            <Button onClick={() => router.refresh()} variant="outline" size="lg" className="w-full gap-2 mt-4">
+                                <HugeiconsIcon icon={Loading03Icon} className="w-5 h-5" />
+                                Refresh Status
+                            </Button>
+                        </div>
+                    ) : (
+                        <motion.div
+                            key={currentIndex}
+                            custom={direction}
+                            initial={{ opacity: 0, x: direction * 50, rotateY: 0 }}
+                            animate={{ opacity: 1, x: 0, rotateY: isFlipped ? 180 : 0 }}
+                            exit={{ opacity: 0, x: direction * -50, rotateY: 0 }} // Don't flip on exit
+                            transition={{ duration: 0.4, ease: "backOut" }}
+                            className="w-full aspect-[3/2] md:aspect-[16/9] relative preserve-3d cursor-pointer group"
+                            onClick={handleFlip}
+                        >
+                            {/* Front */}
+                            <div className="absolute inset-0 backface-hidden w-full h-full">
+                                <div className="w-full h-full bg-card border rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center hover:border-border transition-colors duration-300">
+                                    <span className="text-xs font-bold tracking-widest text-muted-foreground/50 uppercase mb-6">Question</span>
+                                    <p className="text-2xl md:text-3xl lg:text-4xl font-medium font-outfit leading-tight">
+                                        {flashcards[currentIndex].front}
+                                    </p>
+                                    <div className="absolute bottom-6 flex items-center gap-2 text-xs font-medium text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="border px-1.5 py-0.5 rounded text-[10px]">SPACE</span>
+                                        <span>to flip</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Back */}
+                            <div className="absolute inset-0 bg-background backface-hidden w-full h-full rotate-y-180">
+                                <div className="w-full h-full bg-muted/30 border-2 border-primary/10 rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center">
+                                    <span className="text-xs font-bold tracking-widest text-primary/60 uppercase mb-6">Answer</span>
+                                    <p className="text-xl md:text-2xl lg:text-3xl font-medium font-jakarta leading-relaxed text-foreground/90">
+                                        {flashcards[currentIndex].back}
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </main>
+
+            {/* Controls */}
+            {!isFinished && flashcards.length > 0 && (
+                <div className="mt-8 flex items-center justify-center gap-4 md:gap-8">
+                    <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-12 w-12 rounded-xl border" 
+                        onClick={handlePrev} 
+                        disabled={currentIndex === 0}
+                    >
+                        <HugeiconsIcon icon={ArrowLeft01Icon} className="size-5" />
+                    </Button>
+                    
+                    <Button 
+                        size="lg" 
+                        className="h-12 px-8 rounded-xl text-base font-medium min-w-[140px]" 
+                        onClick={handleFlip}
+                    >
+                        {isFlipped ? "Show Question" : "Show Answer"}
+                    </Button>
+
+                    <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-12 w-12 rounded-xl border" 
+                        onClick={handleNext}
+                        disabled={false} // Always enabled to allow finishing
+                    >
+                         <HugeiconsIcon icon={ArrowRight01Icon} className="size-5" />
+                    </Button>
+                </div>
+            )}
+             
+            {/* Keyboard Hints */}
+            {!isFinished && flashcards.length > 0 && (
+                <div className="mt-8 text-center hidden md:block">
+                     <div className="inline-flex items-center gap-6 text-xs text-muted-foreground/60">
+                        <span className="flex items-center gap-1.5"><kbd className="border px-1.5 py-0.5 rounded bg-muted/50 font-sans">←</kbd> Prev</span>
+                        <span className="flex items-center gap-1.5"><kbd className="border px-1.5 py-0.5 rounded bg-muted/50 font-sans">SPACE</kbd> Flip</span>
+                        <span className="flex items-center gap-1.5"><kbd className="border px-1.5 py-0.5 rounded bg-muted/50 font-sans">→</kbd> Next</span>
+                     </div>
+                </div>
+            )}
+        </div>
+    );
+}

@@ -3,8 +3,8 @@
 import { createSource, getSources, deleteSource } from "@sift/auth/actions/sources";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-
 import { createSift, addQuestions, addSections } from "@sift/auth/actions/sifts";
+import { addFlashcards } from "@sift/auth/actions/flashcards";
 import { createLearningPath, addSiftToPath, updatePathSummary } from "@sift/auth/actions/learning-paths";
 import { processSiftContent } from "@/lib/content-processor";
 import { generateQuestionsAction } from "@/app/api/ai/action";
@@ -122,15 +122,26 @@ export async function createTopicSourceAction(topic: string) {
     return { sourceId, siftId };
 }
 
-export async function createImportedSourceAction(title: string, questions: any[]) {
+export async function createImportedSourceAction(title: string, data: any) {
     const headerStore = await headers();
     
+    // Handle new format: { questions: [], flashcards: [] } or old format: [questions]
+    let questions = [];
+    let flashcards = [];
+
+    if (Array.isArray(data)) {
+        questions = data;
+    } else {
+        questions = data.questions || [];
+        flashcards = data.flashcards || [];
+    }
+
     // Create source
     const sourceId = await createSource({
         title,
         fileName: "imported-questions.json",
         type: "json",
-        content: JSON.stringify(questions),
+        content: JSON.stringify(data),
         isPasted: true,
         metadata: {
             source: "import"
@@ -146,7 +157,15 @@ export async function createImportedSourceAction(title: string, questions: any[]
     }, headerStore);
 
     // Add Questions
-    await addQuestions(siftId, questions, headerStore);
+    if (questions.length > 0) {
+        await addQuestions(siftId, questions, headerStore);
+    }
+
+    // Add Flashcards
+    const validFlashcards = flashcards.filter((f: any) => f && typeof f.front === 'string' && typeof f.back === 'string');
+    if (validFlashcards.length > 0) {
+        await addFlashcards(siftId, validFlashcards, headerStore);
+    }
     
     return { sourceId, siftId };
 }
@@ -157,6 +176,7 @@ export async function createImportedLearningPathAction(title: string, data: any)
     // Handle new format: { summary, sections: [] } or old format: [sections]
     const sections = Array.isArray(data) ? data : (data.sections || []);
     const summary = !Array.isArray(data) ? data.summary : null;
+    const flashcards = !Array.isArray(data) ? data.flashcards : null;
 
     // 1. Create the Learning Path Container
     const learningPath = await createLearningPath(title, headerStore);
@@ -220,6 +240,14 @@ export async function createImportedLearningPathAction(title: string, data: any)
 
     if (questionsToSave.length > 0) {
             await addQuestions(siftId, questionsToSave, headerStore);
+    }
+
+    // 7. Save Flashcards if present
+    if (flashcards && Array.isArray(flashcards) && flashcards.length > 0) {
+        const validFlashcards = flashcards.filter((f: any) => f && typeof f.front === 'string' && typeof f.back === 'string');
+        if (validFlashcards.length > 0) {
+            await addFlashcards(siftId, validFlashcards, headerStore);
+        }
     }
     
     return { sourceId, siftId, pathId: learningPath.id };

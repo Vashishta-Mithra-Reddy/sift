@@ -207,7 +207,7 @@ export default function SiftSessionPage() {
 
   if (loading) {
     return (
-        <div className="flex h-screen items-center justify-center flex-col gap-4">
+        <div className="flex h-full items-center justify-center flex-col gap-4">
             <HugeiconsIcon icon={Loading03Icon} className="h-10 w-10 animate-spin text-primary" />
             <p className="text-muted-foreground animate-pulse">Loading your sift...</p>
         </div>
@@ -216,7 +216,7 @@ export default function SiftSessionPage() {
 
   if (!sift) {
       return (
-        <div className="flex h-screen items-center justify-center flex-col gap-4">
+        <div className="flex h-full items-center justify-center flex-col gap-4">
             <div className="p-4 bg-destructive/10 rounded-full text-destructive">
                 <HugeiconsIcon icon={Cancel01Icon} className="h-8 w-8" />
             </div>
@@ -324,6 +324,10 @@ export default function SiftSessionPage() {
                             </p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                            <Button size="lg" variant="secondary" className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-8 h-12 gap-2" onClick={() => router.push(`/sift/${id}/flashcards`)}>
+                                <HugeiconsIcon icon={Idea01Icon} className="h-6 w-6 fill-current" />
+                                Flashcards
+                            </Button>
                             {sift.sections && sift.sections.length > 0 && (
                                 <Button size="lg" className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-8 h-12 gap-2" onClick={handleStartLearning}>
                                     <HugeiconsIcon icon={Idea01Icon} className="h-6 w-6 fill-current" />

@@ -41,7 +41,7 @@ export default function SiftSessionReviewPage() {
 
   if (loading) {
     return (
-        <div className="flex h-screen items-center justify-center flex-col gap-4">
+        <div className="flex h-full items-center justify-center flex-col gap-4">
             <HugeiconsIcon icon={Loading03Icon} className="h-10 w-10 animate-spin text-primary" />
             <p className="text-muted-foreground animate-pulse">Loading session review...</p>
         </div>

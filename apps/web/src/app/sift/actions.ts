@@ -2,6 +2,7 @@
 
 import { getSift, createSiftSession, updateSiftSession, addSessionAnswers, getSiftSessions, getSiftSessionDetails, deleteSiftSession, updateSift, deleteSift } from "@sift/auth/actions/sifts";
 import { updateEchoMastery, batchUpdateEchoesAction as batchUpdateEchoes } from "@sift/auth/actions/echoes";
+import { addFlashcards, getFlashcards } from "@sift/auth/actions/flashcards";
 import { headers } from "next/headers";
 import type { NewSift } from "@sift/auth/types";
 import { auth } from "@sift/auth";
@@ -69,4 +70,14 @@ export async function completeSessionAction(id: string, score: number) {
 export async function deleteSessionAction(sessionId: string) {
     const headerStore = await headers();
     await deleteSiftSession(sessionId, headerStore);
+}
+
+export async function addFlashcardsAction(siftId: string, cards: { front: string; back: string }[]) {
+    const headerStore = await headers();
+    await addFlashcards(siftId, cards, headerStore);
+}
+
+export async function getFlashcardsAction(siftId: string) {
+    const headerStore = await headers();
+    return await getFlashcards(siftId, headerStore);
 }

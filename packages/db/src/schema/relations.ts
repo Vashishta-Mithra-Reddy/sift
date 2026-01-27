@@ -5,6 +5,7 @@ import { sifts, questions, siftSessions, sessionAnswers, siftSections } from "./
 import { echoes } from "./echoes";
 import { pushTokens } from "./push-tokens";
 import { learningPaths, learningPathSifts } from "./learning-paths";
+import { flashcards } from "./flashcards";
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
@@ -51,6 +52,7 @@ export const siftsRelations = relations(sifts, ({ one, many }) => ({
   questions: many(questions),
   sessions: many(siftSessions),
   sections: many(siftSections),
+  flashcards: many(flashcards),
 }));
 
 export const siftSectionsRelations = relations(siftSections, ({ one, many }) => ({
@@ -93,6 +95,13 @@ export const sessionAnswersRelations = relations(sessionAnswers, ({ one }) => ({
   question: one(questions, {
     fields: [sessionAnswers.questionId],
     references: [questions.id],
+  }),
+}));
+
+export const flashcardsRelations = relations(flashcards, ({ one }) => ({
+  sift: one(sifts, {
+    fields: [flashcards.siftId],
+    references: [sifts.id],
   }),
 }));
 

@@ -11,7 +11,7 @@ export default function Spinner({ fullScreen = false, className }: SpinnerProps)
   return (
     <div className={cn(
       "flex items-center justify-center",
-      fullScreen ? "fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm h-screen w-screen" : "wrapperx py-12",
+      fullScreen ? "fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm h-full w-screen" : "wrapperx py-12",
       className
     )}>
       <motion.svg

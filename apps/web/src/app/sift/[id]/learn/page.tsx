@@ -299,9 +299,9 @@ export default function LearningPathPage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [loading, completed, sift, viewState, showAnswer, selectedOption, handleOptionClick, handleCheckAnswer, handleNext]);
 
-    if (loading) return <div className="flex h-screen items-center justify-center flex-col gap-4"><HugeiconsIcon icon={Loading03Icon} className="animate-spin h-10 w-10 text-primary" /><p className="text-muted-foreground">Loading learning path...</p></div>;
+    if (loading) return <div className="flex h-full items-center justify-center flex-col gap-4"><HugeiconsIcon icon={Loading03Icon} className="animate-spin h-10 w-10 text-primary" /><p className="text-muted-foreground">Loading learning path...</p></div>;
     
-    if (!sift || !sift.sections || sift.sections.length === 0) return <div className="flex h-screen items-center justify-center flex-col gap-4"><p>This Sift does not have a learning path.</p><Button onClick={() => router.push(`/sift/${id}`)}>Go Back</Button></div>;
+    if (!sift || !sift.sections || sift.sections.length === 0) return <div className="flex h-full items-center justify-center flex-col gap-4"><p>This Sift does not have a learning path.</p><Button onClick={() => router.push(`/sift/${id}`)}>Go Back</Button></div>;
     
     if (completed) {
         const totalQuestions = sift.sections.reduce((acc, sec) => acc + (sec.questions?.length || 0), 0);

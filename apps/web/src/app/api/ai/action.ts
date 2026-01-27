@@ -4,6 +4,7 @@ import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
 import { addQuestions, addSections, updateSiftSummary } from "@sift/auth/actions/sifts";
 import { getLearningPath, updatePathSummary } from "@sift/auth/actions/learning-paths";
+import { addFlashcards } from "@sift/auth/actions/flashcards";
 import { headers } from "next/headers";
 import { eventBus } from "@/lib/events";
 import { SYSTEM_PROMPT, LEARNING_PATH_SYSTEM_PROMPT } from "@/lib/ai-prompts";
@@ -14,10 +15,12 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export async function generateQuestionsAction(siftId: string, content: string, mode: 'questions' | 'learn' = 'questions', pathId?: string) {
     const MAX_ATTEMPTS = 3;
     const headerStore = await headers();
-    const systemPrompt = mode === 'learn' ? LEARNING_PATH_SYSTEM_PROMPT : SYSTEM_PROMPT;
     
+    let systemPrompt = SYSTEM_PROMPT;
+    if (mode === 'learn') systemPrompt = LEARNING_PATH_SYSTEM_PROMPT;
     
-    let userPrompt = mode === 'learn' ? `Create a learning path for: ${content}` : `Here is the content to generate questions from:\n\n${content}`;
+    let userPrompt = `Here is the content to generate questions from:\n\n${content}`;
+    if (mode === 'learn') userPrompt = `Create a learning path for: ${content}`;
 
     // Inject Context for Learning Paths
     if (mode === 'learn' && pathId) {
@@ -38,8 +41,8 @@ export async function generateQuestionsAction(siftId: string, content: string, m
             });
 
             // 1. Locate JSON
-            const jsonStartIndex = text.indexOf(mode === 'learn' ? '{' : '[');
-            const jsonEndIndex = text.lastIndexOf(mode === 'learn' ? '}' : ']') + 1;
+            const jsonStartIndex = text.indexOf(mode === 'learn' ? '{' : '{'); // Changed '[' to '{' for questions mode
+            const jsonEndIndex = text.lastIndexOf(mode === 'learn' ? '}' : '}') + 1; // Changed ']' to '}' for questions mode
 
             if (jsonStartIndex === -1 || jsonEndIndex === -1) {
                  throw new Error("AI did not return a valid JSON");
@@ -101,6 +104,11 @@ export async function generateQuestionsAction(siftId: string, content: string, m
                      questionsCount = questionsToSave.length;
                 }
 
+                // Save Flashcards
+                if (parsedData.flashcards && Array.isArray(parsedData.flashcards) && parsedData.flashcards.length > 0) {
+                     await addFlashcards(siftId, parsedData.flashcards, headerStore);
+                }
+
                 // Update Path Summary
                 if (pathId && parsedData.summary) {
                     await updatePathSummary(pathId, parsedData.summary, headerStore);
@@ -112,26 +120,38 @@ export async function generateQuestionsAction(siftId: string, content: string, m
                 }
 
             } else {
-                // Handle Standard Questions
-                if (!Array.isArray(parsedData)) {
-                    throw new Error("AI response is not an array");
-                }
-                const questions = parsedData;
+                // Questions Mode (Standard) - Now expects object with { questions: [], flashcards: [] }
+                
+                // Handle legacy array format if AI messes up
+                let questionsData = [];
+                let flashcardsData = [];
 
-                // Strict validation: Ensure exactly 4 options per question
-                const invalidQuestions = questions.filter((q: any) => !Array.isArray(q.options) || q.options.length !== 4);
-                if (invalidQuestions.length > 0) {
-                    throw new Error(`Found ${invalidQuestions.length} questions with incorrect number of options (must be strictly 4)`);
+                if (Array.isArray(parsedData)) {
+                    questionsData = parsedData;
+                } else {
+                    questionsData = parsedData.questions || [];
+                    flashcardsData = parsedData.flashcards || [];
                 }
 
-                await addQuestions(siftId, questions, headerStore);
-                questionsCount = questions.length;
+                // Save Questions
+                if (questionsData.length > 0) {
+                     await addQuestions(siftId, questionsData, headerStore);
+                     questionsCount = questionsData.length;
+                }
+
+                // Save Flashcards
+                if (flashcardsData.length > 0) {
+                    await addFlashcards(siftId, flashcardsData, headerStore);
+                }
+                
+                // Generate Summary if not present (optional, can be done via separate call/prompt if needed)
+                if (content.length > 100) {
+                     // Fire and forget summary update? Or rely on questions
+                }
             }
-            
-            // 4. Notify listeners & Success
-            eventBus.emit(`sift-ready-${siftId}`, { count: questionsCount });
 
-            console.log(`${mode === 'learn' ? 'Learning path' : 'Questions'} saved successfully.`);
+            // Success!
+            eventBus.emit(`sift-status-${siftId}`, { status: 'completed', message: 'Sift generated successfully!' });
             return { success: true, count: questionsCount };
 
         } catch (error) {

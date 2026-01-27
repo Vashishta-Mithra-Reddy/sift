@@ -59,6 +59,7 @@ export default function LearningPathPage() {
     
     // Completion State
     const [completed, setCompleted] = useState(false);
+    const [isCompleting, setIsCompleting] = useState(false);
     const [correctCount, setCorrectCount] = useState(0);
     const correctCountRef = useRef(0); // Ref for synchronous access during completion
     const [performanceData, setPerformanceData] = useState<{ topic: string, level: number }[]>([]);
@@ -144,6 +145,7 @@ export default function LearningPathPage() {
 
     const advanceSection = useCallback(async (newPerformanceEntry?: { topic: string, level: number }) => {
         if (!sift || !sift.sections) return;
+        if (isCompleting) return;
         
         if (currentSectionIndex < sift.sections.length - 1) {
             setCurrentSectionIndex(prev => prev + 1);
@@ -152,6 +154,7 @@ export default function LearningPathPage() {
             setShowAnswer(false);
         } else {
             // End of Learning Path
+            setIsCompleting(true);
             try {
                 // Calculate final score using Ref for synchronous accuracy
                 const totalQuestions = sift.sections.reduce((acc, sec) => acc + (sec.questions?.length || 0), 0);
@@ -179,9 +182,10 @@ export default function LearningPathPage() {
             } catch (error) {
                 console.error("Failed to complete session", error);
                 toast.error("Failed to save progress");
+                setIsCompleting(false);
             }
         }
-    }, [sift, currentSectionIndex, sessionId, performanceData, playSuccess]);
+    }, [sift, currentSectionIndex, sessionId, performanceData, playSuccess, isCompleting]);
 
     const handleNext = useCallback(async () => {
         if (!sift || !sift.sections) return;
@@ -195,6 +199,7 @@ export default function LearningPathPage() {
                 setCurrentQuestionIndex(0);
                 setSelectedOption(null);
                 setShowAnswer(false);
+                setProcessing(false);
             } else {
                 // No questions, skip to next section
                 advanceSection();
@@ -253,7 +258,7 @@ export default function LearningPathPage() {
                 setProcessing(false);
             } else {
                 // Finished quiz for this section
-                setProcessing(false); // Reset processing before changing view
+                // Do NOT reset processing here to prevent double-submission during completion
                 advanceSection(newPerformanceEntry);
             }
         }

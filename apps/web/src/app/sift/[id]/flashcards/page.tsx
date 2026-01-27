@@ -117,7 +117,7 @@ export default function FlashcardsPage() {
         </div>
     );
 
-    const progress = ((currentIndex + (isFinished ? 1 : 0)) / flashcards.length) * 100;
+    const progress = ((currentIndex + 1) / flashcards.length) * 100;
 
     return (
         <div className="text-foreground flex flex-col mx-auto md:px-4 ">

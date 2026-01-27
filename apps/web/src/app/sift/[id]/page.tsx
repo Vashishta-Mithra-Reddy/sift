@@ -324,10 +324,6 @@ export default function SiftSessionPage() {
                             </p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                            <Button size="lg" variant="secondary" className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-8 h-12 gap-2" onClick={() => router.push(`/sift/${id}/flashcards`)}>
-                                <HugeiconsIcon icon={Idea01Icon} className="h-6 w-6 fill-current" />
-                                Flashcards
-                            </Button>
                             {sift.sections && sift.sections.length > 0 && (
                                 <Button size="lg" className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-8 h-12 gap-2" onClick={handleStartLearning}>
                                     <HugeiconsIcon icon={Idea01Icon} className="h-6 w-6 fill-current" />
@@ -337,6 +333,10 @@ export default function SiftSessionPage() {
                             <Button size="lg" variant={sift.sections && sift.sections.length > 0 ? "outline" : "default"} className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-8 h-12 gap-2" onClick={handleStartSession}>
                                 <HugeiconsIcon icon={PlayIcon} className="h-6 w-6 fill-current" />
                                 {sift.sections && sift.sections.length > 0 ? "Practice Quiz" : "Start New Quiz"}
+                            </Button>
+                            <Button size="lg" variant="secondary" className="font-jakarta w-full rounded-xl shadow-none sm:w-auto text-base px-8 h-12 gap-2" onClick={() => router.push(`/sift/${id}/flashcards`)}>
+                                <HugeiconsIcon icon={Idea01Icon} className="h-6 w-6 fill-current" />
+                                Flashcards
                             </Button>
                         </div>
                     </div>

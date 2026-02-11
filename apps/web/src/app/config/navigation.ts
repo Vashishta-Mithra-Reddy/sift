@@ -17,6 +17,8 @@ export type NavItem = {
   pathname: string;
   icon: any;
   hideOnDesktop?: boolean;
+  requiresAuth?: boolean;
+  guestOnly?: boolean;
   roles?: string[]; // Optional for now
 };
 
@@ -42,6 +44,7 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     href: { pathname: "/ai" },
     pathname: "/ai",
     icon: AiCloud01Icon,
+    requiresAuth: true,
   },
   {
     key: "learn",
@@ -49,6 +52,7 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     href: { pathname: "/learn" },
     pathname: "/learn",
     icon: Mortarboard02Icon,
+    requiresAuth: true,
   },
   {
     key: "dashboard",
@@ -56,6 +60,7 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     href: { pathname: "/dashboard" },
     pathname: "/dashboard",
     icon: BookOpen01Icon,
+    requiresAuth: true,
   },
   {
     key: "sifts",
@@ -63,6 +68,7 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     href: { pathname: "/sifts" },
     pathname: "/sifts",
     icon: FlashIcon,
+    requiresAuth: true,
   },
   {
     key: "echoes",
@@ -70,6 +76,7 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     href: { pathname: "/echoes" },
     pathname: "/echoes",
     icon: ChartHistogramIcon,
+    requiresAuth: true,
   },
   // {
   //   key: "settings",

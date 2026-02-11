@@ -19,8 +19,11 @@ export default function Header({ authButton }: HeaderProps) {
   
   const { data: session } = authClient.useSession();
 
+  const isAuthenticated = Boolean(session?.user);
   const filteredNavItems = NAVIGATION_ITEMS.filter((item) => {
     if (item.hideOnDesktop) return false;
+    if (item.requiresAuth && !isAuthenticated) return false;
+    if (item.guestOnly && isAuthenticated) return false;
     return true;
   });
 

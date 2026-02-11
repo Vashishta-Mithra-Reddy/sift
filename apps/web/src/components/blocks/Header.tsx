@@ -32,8 +32,11 @@ export default function Header({ authButton }: HeaderProps) {
 
   if (pathname?.includes("/flashcards") || pathname?.includes("/takeaways")) return null;
 
+  const isAuthenticated = Boolean(session?.user);
   const filteredNavItems = NAVIGATION_ITEMS.filter((item) => {
     if (item.hideOnDesktop) return false;
+    if (item.requiresAuth && !isAuthenticated) return false;
+    if (item.guestOnly && isAuthenticated) return false;
     return true;
   });
 

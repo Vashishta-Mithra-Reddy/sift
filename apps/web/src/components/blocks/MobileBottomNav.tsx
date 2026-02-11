@@ -14,8 +14,11 @@ export default function MobileBottomNav() {
   if (pathname.includes("/sift/")) return null;
 
   // Show all items for now, role based filtering later if needed
+  const isAuthenticated = Boolean(session?.user);
   const filteredNavItems = NAVIGATION_ITEMS.filter((item) => {
-    return true; 
+    if (item.requiresAuth && !isAuthenticated) return false;
+    if (item.guestOnly && isAuthenticated) return false;
+    return true;
   });
 
   return (

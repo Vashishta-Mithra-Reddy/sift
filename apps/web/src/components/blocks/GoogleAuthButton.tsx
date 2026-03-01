@@ -37,7 +37,7 @@ interface GoogleAuthButtonProps {
 export default function GoogleAuthButton({ 
   className, 
   text = "Continue with Google",
-  redirectUrl = "/dashboard"
+  redirectUrl = "/ai"
 }: GoogleAuthButtonProps) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();

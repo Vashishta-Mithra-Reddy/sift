@@ -9,7 +9,7 @@ import { Analytics } from "@vercel/analytics/next"
 import Footer from "@/components/blocks/Footer";
 import MobileBottomNav from "@/components/blocks/MobileBottomNav";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -31,9 +31,63 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = "https://sift.v19.tech/";
+
 export const metadata: Metadata = {
-  title: "Sift | Recall What You've Learned | Active Recall Engine | Quiz Thingy",
-  description: "Sift is a platform that helps you recall information more effectively. Simply put it creates quizes and helps you master the information you learn.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Sift | Recall What You've Learned | Active Recall Engine | Quiz Thingy",
+    template: "%s | Sift",
+  },
+  description:
+    "Sift is an active recall platform that turns your content into quizzes, flashcards, learning paths, and continuous courses so you can keep learning deeper.",
+  applicationName: "Sift",
+  keywords: [
+    "active recall",
+    "flashcards",
+    "spaced repetition",
+    "quiz generator",
+    "learning paths",
+    "continuous courses",
+    "study app",
+    "knowledge retention",
+  ],
+  creator: "Sift",
+  publisher: "Sift",
+  icons: {
+    icon: "/favicon/favicon.ico",
+    apple: "/favicon/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    title: "Sift",
+    description:
+      "Sift is an active recall platform that turns your content into quizzes, flashcards, learning paths, and continuous courses so you can keep learning deeper.",
+    siteName: "Sift",
+    images: [
+      {
+        url: "/favicon/web-app-manifest-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "Sift",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sift",
+    description:
+      "Sift is an active recall platform that turns your content into quizzes, flashcards, learning paths, and continuous courses so you can keep learning deeper.",
+    images: ["/favicon/web-app-manifest-512x512.png"],
+  },
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

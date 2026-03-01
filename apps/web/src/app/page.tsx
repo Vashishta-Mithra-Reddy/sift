@@ -18,7 +18,7 @@ export default async function Home() {
   });
 
   if (session) {
-    redirect("/dashboard");
+    redirect("/sifts");
   }
 
   return (

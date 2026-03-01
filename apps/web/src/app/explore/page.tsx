@@ -165,7 +165,7 @@ export default function ExplorePage() {
                         <HugeiconsIcon icon={Globe02Icon} className="h-10 w-10 text-primary" />
                     </div>
                 </div>
-                <div className="space-y-2 max-w-sm mx-auto">
+                <div className="space-y-2 max-w-sm mx-auto px-4">
                     <h3 className="text-xl font-bold">No public sifts found</h3>
                     <p className="text-muted-foreground">
                         {searchQuery ? "Try adjusting your search query." : "There are no public sifts yet. Be the first to publish one!"}

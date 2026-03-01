@@ -15,7 +15,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (session) {
-      router.push("/dashboard");
+      router.push("/ai");
     }
   }, [session, router]);
 

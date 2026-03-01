@@ -29,7 +29,7 @@ export default function AIPage() {
   // Direct Generate State
   const [topic, setTopic] = useState("");
   const [planMode, setPlanMode] = useState(false);
-  const [learnMode, setLearnMode] = useState(false);
+  const [learnMode, setLearnMode] = useState(true);
   const [plan, setPlan] = useState("");
   const [showPlanReview, setShowPlanReview] = useState(false);
 
@@ -180,11 +180,12 @@ export default function AIPage() {
                         <div className="space-y-4">
                             <div className="space-y-2">
                                 <Label>Topic</Label>
-                                <Input 
-                                    placeholder="e.g.React Hooks, Photosynthesis, World War II,..." 
+                                <Textarea 
+                                    placeholder="e.g. React Hooks, Photosynthesis, World War II..." 
                                     value={topic}
                                     onChange={(e) => setTopic(e.target.value)}
                                     disabled={isPlanning || isGeneratingQuestions}
+                                    className="min-h-[120px] resize-y"
                                 />
                             </div>
                             
@@ -215,7 +216,7 @@ export default function AIPage() {
                             </div>
 
                             {!showPlanReview && !isGeneratingQuestions && !isPlanning && (
-                                <Button onClick={handleStartGenerate} className="gap-2">
+                                <Button size="lg" onClick={handleStartGenerate} className="gap-2 px-4 py-4">
                                     <HugeiconsIcon icon={MagicWand01Icon} className="h-4 w-4" />
                                     Generate
                                 </Button>

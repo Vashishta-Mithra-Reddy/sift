@@ -12,6 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 import type { SiftWithSource } from "@sift/auth/types";
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { motion} from "framer-motion";
 
 interface SiftsClientProps {
     initialSifts: SiftWithSource[];
@@ -49,6 +50,21 @@ export function SiftsClient({ initialSifts, initialArchivedSifts }: SiftsClientP
   const filteredActiveSifts = getFilteredSifts(sifts);
   const filteredArchivedSifts = getFilteredSifts(archivedSifts);
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   const renderSiftGrid = (siftList: SiftWithSource[], emptyMessage: string) => {
       if (siftList.length === 0) {
           return (
@@ -79,44 +95,51 @@ export function SiftsClient({ initialSifts, initialArchivedSifts }: SiftsClientP
       }
 
       return (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div 
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
             {siftList.map((sift) => (
-                <Card key={sift.id} className="group flex flex-col overflow-hidden border-border/30 bg-card hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-none hover:shadow-primary/5">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:scale-105 transition-transform duration-300">
-                                <HugeiconsIcon icon={FlashIcon} className="h-6 w-6" />
+                <motion.div key={sift.id} variants={item}>
+                    <Card className="group flex flex-col overflow-hidden border-border/30 bg-card hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-none hover:shadow-primary/5 h-full">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between mb-4">
+                                <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:scale-105 transition-transform duration-300">
+                                    <HugeiconsIcon icon={FlashIcon} className="h-6 w-6" />
+                                </div>
                             </div>
-                        </div>
-                        <Link href={`/sift/${sift.id}`} className="block">
-                        <CardTitle className="line-clamp-2 leading-tight group-hover:text-primary hover:underline line-clamp-1 transition-colors">
-                            {(() => {
-                                const moduleNumber = sift.learningPathSifts?.[0]?.order;
-                                if (typeof moduleNumber === "number") {
-                                    return `Module ${moduleNumber + 1}: ${sift.source?.title || "Untitled Source"}`;
-                                }
-                                return sift.source?.title || "Untitled Source";
-                            })()}
-                        </CardTitle>
-                        </Link>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
-                            <HugeiconsIcon icon={Time01Icon} className="h-3 w-3" />
-                            <span>Started {formatDistanceToNow(new Date(sift.createdAt), { addSuffix: true })}</span>
-                        </div>
-                    </CardHeader>
-                    
-                    <CardContent className="flex-1 hidden">
-                    </CardContent>
+                            <Link href={`/sift/${sift.id}`} className="block">
+                            <CardTitle className="line-clamp-2 leading-tight group-hover:text-primary hover:underline line-clamp-1 transition-colors">
+                                {(() => {
+                                    const moduleNumber = sift.learningPathSifts?.[0]?.order;
+                                    if (typeof moduleNumber === "number") {
+                                        return `Module ${moduleNumber + 1}: ${sift.source?.title || "Untitled Source"}`;
+                                    }
+                                    return sift.source?.title || "Untitled Source";
+                                })()}
+                            </CardTitle>
+                            </Link>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                                <HugeiconsIcon icon={Time01Icon} className="h-3 w-3" />
+                                <span>Started {formatDistanceToNow(new Date(sift.createdAt), { addSuffix: true })}</span>
+                            </div>
+                        </CardHeader>
+                        
+                        <CardContent className="flex-1 hidden">
+                        </CardContent>
 
-                    <CardFooter className="p-0">
-                        <Link href={`/sift/${sift.id}`} className="w-full h-full px-4 py-3 flex items-center justify-center gap-2 transition-all duration-300">
-                                {sift.status === 'in_progress' ? 'Load Sift' : 'Review Session'}
-                                <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 group-hover:translate-x-0.5 transition-transform duration-300" />
-                        </Link>
-                    </CardFooter>
-                </Card>
+                        <CardFooter className="p-0 mt-auto">
+                            <Link href={`/sift/${sift.id}`} className="w-full h-full px-4 py-3 flex items-center justify-center gap-2 transition-all duration-300">
+                                    {sift.status === 'in_progress' ? 'Load Sift' : 'Review Session'}
+                                    <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 group-hover:translate-x-0.5 transition-transform duration-300" />
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                </motion.div>
             ))}
-        </div>
+        </motion.div>
       );
   };
 
@@ -126,7 +149,7 @@ export function SiftsClient({ initialSifts, initialArchivedSifts }: SiftsClientP
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-background dark:bg-transparent rounded-xl pr-3">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            My Sifts
+            Sifts
           </h1>
           <p className="text-muted-foreground text-lg">
               Manage and continue your active recall sessions.

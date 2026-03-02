@@ -70,7 +70,7 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
 
       if (source?.isPasted) {
           // Fallback if no specific sift found but marked as pasted/ready
-          router.push("/sifts");
+          router.push("/ai");
       } else {
           toast.info("AI Generation coming soon!", {
               description: "For uploaded files, use the 'AI Studio' to import generated questions for now."

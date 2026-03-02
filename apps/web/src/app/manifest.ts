@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "sift",
     short_name: "sift",
     description: "Sift is a platform that helps you recall information more effectively. Simply put it creates quizes and helps you master the information you learn.",
-    start_url: "/sifts",
+    start_url: "/ai",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#000000",

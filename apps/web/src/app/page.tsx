@@ -18,7 +18,7 @@ export default async function Home() {
   });
 
   if (session) {
-    redirect("/sifts");
+    redirect("/ai");
   }
 
   return (

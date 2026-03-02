@@ -36,7 +36,7 @@ const siteUrl = "https://sift.v19.tech/";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Sift | Recall What You've Learned | Active Recall Engine | Quiz Thingy",
+    default: "Sift | Recall What You've Learned | Active Recall Engine | AI Courses and Quizzes",
     template: "%s | Sift",
   },
   description:

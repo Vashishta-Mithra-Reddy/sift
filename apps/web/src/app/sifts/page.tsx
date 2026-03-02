@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSiftsAction, getArchivedSiftsAction } from "./actions";
+import { getSiftsAction, getArchivedSiftsAction, getLearningPathForSiftAction } from "./actions";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FlashIcon, ArrowRight01Icon, Time01Icon, Search01Icon, FilterHorizontalIcon, SortByUp01Icon, Archive02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ export default function SiftsPage() {
   const [sifts, setSifts] = useState<SiftWithSource[]>([]);
   const [archivedSifts, setArchivedSifts] = useState<SiftWithSource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [moduleNumbers, setModuleNumbers] = useState<Record<string, number | null>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"date-desc" | "date-asc" | "alpha-asc" | "alpha-desc">("date-desc");
   const [activeTab, setActiveTab] = useState("active");
@@ -33,6 +34,19 @@ export default function SiftsPage() {
             ]);
             setSifts(active);
             setArchivedSifts(archived);
+            const allSifts = [...active, ...archived];
+            const moduleEntries = await Promise.all(
+                allSifts.map(async (sift) => {
+                    try {
+                        const path = await getLearningPathForSiftAction(sift.id);
+                        const order = path?.sifts?.find((item: any) => item.siftId === sift.id)?.order;
+                        return [sift.id, order ?? null] as const;
+                    } catch (e) {
+                        return [sift.id, null] as const;
+                    }
+                })
+            );
+            setModuleNumbers(Object.fromEntries(moduleEntries));
         } catch (e) {
             console.error(e);
         } finally {
@@ -45,7 +59,7 @@ export default function SiftsPage() {
   const getFilteredSifts = (list: SiftWithSource[]) => {
     return list
         .filter(sift => 
-        sift.source?.title?.toLowerCase().includes(searchQuery.toLowerCase())
+        (sift.source?.title || "").toLowerCase().includes(searchQuery.toLowerCase())
         )
         .sort((a, b) => {
         switch (sortOrder) {
@@ -131,7 +145,13 @@ export default function SiftsPage() {
                         </div>
                         <Link href={`/sift/${sift.id}`} className="block">
                         <CardTitle className="line-clamp-2 leading-tight group-hover:text-primary hover:underline line-clamp-1 transition-colors">
-                            {sift.source?.title || "Untitled Source"}
+                            {(() => {
+                                const moduleNumber = moduleNumbers?.[sift.id];
+                                if (typeof moduleNumber === "number") {
+                                    return `Module ${moduleNumber + 1}: ${sift.source?.title || "Untitled Source"}`;
+                                }
+                                return sift.source?.title || "Untitled Source";
+                            })()}
                         </CardTitle>
                         </Link>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">

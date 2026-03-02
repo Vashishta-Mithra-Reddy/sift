@@ -64,7 +64,7 @@ export default function SiftPlayPage() {
             const siftData = await getSiftAction(id);
             if (!siftData) {
                 toast.error("Sift not found");
-                router.push("/dashboard");
+                router.push("/sifts");
                 return;
             }
             setSift(siftData);

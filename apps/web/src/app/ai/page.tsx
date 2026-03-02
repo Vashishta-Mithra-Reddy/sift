@@ -189,7 +189,7 @@ export default function AIPage() {
                                 />
                             </div>
                             
-                            <div className="flex items-center space-x-2">
+                            <div className="hidden flex items-center space-x-2">
                                 <Switch 
                                     id="plan-mode" 
                                     checked={planMode} 
@@ -202,7 +202,7 @@ export default function AIPage() {
                                 <Label htmlFor="plan-mode">Plan Mode (Review outline before generating)</Label>
                             </div>
 
-                            <div className="flex items-center space-x-2">
+                            <div className="hidden flex items-center space-x-2">
                                 <Switch 
                                     id="learn-mode" 
                                     checked={learnMode} 

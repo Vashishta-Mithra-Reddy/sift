@@ -113,7 +113,7 @@ export default function FlashcardsPage() {
     if (!sift) return (
         <div className="flex h-full w-full items-center justify-center flex-col gap-4">
             <p className="text-muted-foreground">Sift not found</p>
-            <Button onClick={() => router.push('/dashboard')}>Go Home</Button>
+            <Button onClick={() => router.push("/sifts")}>Go Home</Button>
         </div>
     );
 

@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     siteName: "Sift",
     images: [
       {
-        url: "/favicon/web-app-manifest-512x512.png",
+        url: "/banner.png",
         width: 512,
         height: 512,
         alt: "Sift",
@@ -79,7 +79,7 @@ export const metadata: Metadata = {
     title: "Sift",
     description:
       "Sift is an active recall platform that turns your content into quizzes, flashcards, learning paths, and continuous courses so you can keep learning deeper.",
-    images: ["/favicon/web-app-manifest-512x512.png"],
+    images: ["/banner.png"],
   },
   alternates: {
     canonical: "/",

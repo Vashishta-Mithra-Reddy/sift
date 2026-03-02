@@ -9,12 +9,14 @@ import {
     completeSessionAction, 
     batchUpdateEchoesAction 
 } from "../../actions";
+import { getLearningPathForSiftAction, generateNextModuleAction } from "../../../learn/actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { 
     ArrowRight01Icon, 
+    ArrowRightIcon,
     CheckmarkCircle02Icon, 
     Cancel01Icon, 
     Loading03Icon, 
@@ -63,6 +65,8 @@ export default function LearningPathPage() {
     const [correctCount, setCorrectCount] = useState(0);
     const correctCountRef = useRef(0); // Ref for synchronous access during completion
     const [performanceData, setPerformanceData] = useState<{ topic: string, level: number }[]>([]);
+    const [learningPath, setLearningPath] = useState<any>(null);
+    const [continuing, setContinuing] = useState(false);
 
     // Sounds
     const [playClick] = useSound('/audio/click.wav', { volume: 0.05 });
@@ -109,6 +113,10 @@ export default function LearningPathPage() {
 
         initSession();
     }, [id, router]);
+
+    useEffect(() => {
+        getLearningPathForSiftAction(id).then(setLearningPath);
+    }, [id]);
 
     // Helpers
     const getCurrentSection = () => sift?.sections?.[currentSectionIndex];
@@ -264,6 +272,29 @@ export default function LearningPathPage() {
         }
     }, [sift, currentSectionIndex, viewState, processing, currentQuestionIndex, selectedOption, sessionId, playClick, performanceData, advanceSection]);
 
+    const handleContinueLearning = useCallback(async () => {
+        if (!learningPath) {
+            router.push(`/sift/${id}`);
+            return;
+        }
+        const currentSiftIndex = learningPath.sifts.findIndex((s: any) => s.siftId === id);
+        const nextSift = learningPath.sifts[currentSiftIndex + 1];
+        if (nextSift) {
+            router.push(`/sift/${nextSift.siftId}`);
+            return;
+        }
+        setContinuing(true);
+        try {
+            const { siftId } = await generateNextModuleAction(learningPath.id, learningPath.goal);
+            toast.success("Module generated!");
+            router.push(`/sift/${siftId}`);
+        } catch (e) {
+            toast.error("Failed to generate module");
+        } finally {
+            setContinuing(false);
+        }
+    }, [learningPath, id, router]);
+
     // Keyboard Shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -364,7 +395,7 @@ export default function LearningPathPage() {
                     </div>
 
                     {/* Right Column: Stats & Actions */}
-                    <div className="flex flex-col p-8 md:pl-3 md:pr-8 md:py-8 space-y-6 bg-card">
+                    <div className="flex flex-col p-8 pt-0 md:pt-8 md:pl-3 md:pr-8 md:py-8 space-y-6 bg-card">
                         <div className="flex-1 grid grid-cols-2 gap-4 content-center">
                             <div className="flex flex-col gap-3 p-5 rounded-2xl border bg-card/50 hover:bg-card/80 transition-colors">
                                 <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
@@ -386,7 +417,7 @@ export default function LearningPathPage() {
                                 <p className="text-3xl font-bold tracking-tight">{incorrectCount}</p>
                             </div>
 
-                            <div className="flex flex-col gap-3 p-5 rounded-2xl border bg-card/50 hover:bg-card/80 transition-colors">
+                            <div className="hidden md:flex flex-col gap-3 p-5 rounded-2xl border bg-card/50 hover:bg-card/80 transition-colors">
                                 <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
                                     <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
                                         <HugeiconsIcon icon={Target02Icon} className="h-5 w-5" />
@@ -396,7 +427,7 @@ export default function LearningPathPage() {
                                 <p className="text-3xl font-bold tracking-tight">{totalQuestions}</p>
                             </div>
 
-                            <div className="flex flex-col gap-3 p-5 rounded-2xl border bg-card/50 hover:bg-card/80 transition-colors">
+                            <div className="hidden md:flex flex-col gap-3 p-5 rounded-2xl border bg-card/50 hover:bg-card/80 transition-colors">
                                 <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
                                     <div className="p-2 rounded-lg bg-orange-500/10 text-orange-600">
                                         <HugeiconsIcon icon={Time01Icon} className="h-5 w-5" />
@@ -412,13 +443,27 @@ export default function LearningPathPage() {
                                 <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5 rotate-180" />
                                 Return
                             </Button>
-                            <Button size="lg" onClick={() => window.location.reload()} variant="outline" className="h-12 text-base rounded-xl">
+                            {/* <Button size="lg" onClick={() => window.location.reload()} variant="outline" className="h-12 text-base rounded-xl">
                                 <HugeiconsIcon icon={ReloadIcon} className="h-5 w-5" />
                                 Retry
-                            </Button>
-                            <Button size="lg" onClick={() => router.push(`/sift/${id}?review=${sessionId}`)} className="h-12 text-base rounded-xl col-span-2">
+                            </Button> */}
+                            <Button size="lg" onClick={() => router.push(`/sift/${id}?review=${sessionId}`)} variant="outline" className="h-12 text-base rounded-xl">
                                 Review
                             </Button>
+                            <Button size="lg" onClick={handleContinueLearning} className="h-12 text-base rounded-xl col-span-2" disabled={continuing}>
+                                {continuing ? (
+                                    <>
+                                        <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                                        Generating next module...
+                                    </>
+                                ) : (
+                                    <>
+                                        Continue Learning
+                                        <HugeiconsIcon icon={ArrowRightIcon} className="h-4 w-4" />
+                                    </>
+                                )}
+                            </Button>
+
                         </div>
                     </div>
                 </Card>

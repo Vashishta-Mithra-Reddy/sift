@@ -19,7 +19,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
            */}
           {/* <ScrollProgress className="fixed bottom-0 z-[10000] h-1 dark:bg-[#0090FF] bg-gray-600"/> */}
           {/* </div> */}
-          <Toaster />
+          <Toaster/>
       </BackgroundProvider>
     </ThemeProvider>
   );

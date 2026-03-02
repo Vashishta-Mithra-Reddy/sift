@@ -25,7 +25,7 @@ export default function SiftSessionReviewPage() {
             const details = await getSiftSessionDetailsAction(id);
             if (!details) {
                 toast.error("Session not found");
-                router.push("/dashboard");
+                router.push("/sifts");
                 return;
             }
             setSession(details);
@@ -53,7 +53,7 @@ export default function SiftSessionReviewPage() {
   return (
     <div className="mx-auto pb-10 space-y-8 px-0 md:px-4">
         <div className="flex flex-col gap-2 px-2 md:px-0">
-            <Button variant="ghost" className="hidden md:flex w-fit -ml-4 text-muted-foreground bg-background" onClick={() => router.push(`/sift/${session.siftId}`)}>
+            <Button variant="ghost" className="flex w-fit -ml-4 text-muted-foreground bg-background" onClick={() => router.push(`/sift/${session.siftId}`)}>
                 <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 rotate-180 mr-2" />
                 Back to Details
             </Button>

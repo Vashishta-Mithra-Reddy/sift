@@ -35,6 +35,7 @@ export default function SiftSessionPage() {
   
   const [loading, setLoading] = useState(true);
   const [deletingSession, setDeletingSession] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeletingSift, setIsDeletingSift] = useState(false);
   const [learningPath, setLearningPath] = useState<any>(null);
   const [generatingNext, setGeneratingNext] = useState(false);
@@ -175,7 +176,8 @@ export default function SiftSessionPage() {
       try {
           await deleteSiftAction(sift.id);
           toast.success("Sift deleted");
-          router.push("/dashboard");
+          setIsDeleteDialogOpen(false);
+          router.push("/sifts");
       } catch (e) {
           toast.error("Failed to delete sift");
           setIsDeletingSift(false);
@@ -188,12 +190,12 @@ export default function SiftSessionPage() {
     try {
         const { siftId } = await generateNextModuleAction(learningPath.id, learningPath.goal);
         toast.success("Module generated!");
-        
         // Refresh learning path to update the button state
-        const updatedPath = await getLearningPathForSiftAction(id);
-        if (updatedPath) {
-            setLearningPath(updatedPath);
-        }
+        // const updatedPath = await getLearningPathForSiftAction(id);
+        // if (updatedPath) {
+        //     setLearningPath(updatedPath);
+        // }
+        router.push(`/sift/${siftId}`);
     } catch (e) {
         toast.error("Failed to generate module");
     } finally {
@@ -221,15 +223,18 @@ export default function SiftSessionPage() {
                 <HugeiconsIcon icon={Cancel01Icon} className="h-8 w-8" />
             </div>
             <h2 className="text-xl font-semibold">Sift Not Found</h2>
-            <Button onClick={() => router.push("/dashboard")}>Return to Library</Button>
+            <Button onClick={() => router.push("/sifts")}>Return to Library</Button>
         </div>
       );
   }
+  
+  const moduleNumber = learningPath?.sifts.find((item: any) => item.siftId === id)?.order;
+  const titlePrefix = moduleNumber !== undefined ? `Module ${moduleNumber + 1}: ` : "";
 
   // --- DETAILS VIEW ---
   return (
     <div className="max-w-7xl mx-auto space-y-8 md:px-4">
-        <AlertDialog open={isDeletingSift} onOpenChange={setIsDeletingSift}>
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Delete Sift?</AlertDialogTitle>
@@ -249,7 +254,7 @@ export default function SiftSessionPage() {
 
         <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-                <Button variant="ghost" className="w-fit -ml-4 text-muted-foreground bg-background" onClick={() => router.push("/dashboard")}>
+                <Button variant="ghost" className="w-fit -ml-4 text-muted-foreground bg-background" onClick={() => router.push("/sifts")}>
                     <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 rotate-180 mr-2" />
                     Back to Library
                 </Button>
@@ -280,8 +285,8 @@ export default function SiftSessionPage() {
                                 {sift.isArchived ? "Unarchive Sift" : "Archive Sift"}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setIsDeletingSift(true)}>
-                                <HugeiconsIcon icon={Delete01Icon} className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem className="text-destructive hover:text-destructive focus:text-destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+                                <HugeiconsIcon icon={Delete01Icon} className="mr-2 h-4 w-4 focus:text-destructive hover:text-destructive group-hover:text-destructive text-destructive" />
                                 Delete Sift
                             </DropdownMenuItem>
                             
@@ -292,7 +297,7 @@ export default function SiftSessionPage() {
 
             <div className="space-y-2 bg-background dark:bg-transparent rounded-xl">
                 <div className="flex items-start justify-between gap-4">
-                    <h1 className="text-2xl md:text-4xl font-bold tracking-tight">{sift.source?.title}</h1>
+                    <h1 className="text-2xl md:text-4xl font-bold tracking-tight">{`${titlePrefix}${sift.source?.title ?? ""}`}</h1>
                     {sift.isPublic && (
                         <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 shrink-0">
                             Public
@@ -382,7 +387,8 @@ export default function SiftSessionPage() {
                                                 ) : (
                                                     <>
                                                         {/* <HugeiconsIcon icon={PlayIcon} className="h-4 w-4 fill-current" /> */}
-                                                        Generate Next Module
+                                                        {/* Generate Next Module */}
+                                                        Continue Learning
                                                     </>
                                                 )}
                                             </Button>
@@ -439,8 +445,38 @@ export default function SiftSessionPage() {
                     </div>
                 )}
 
-                    {/* Stats & Charts Row */}
-                    <div className="grid md:grid-cols-2 gap-8 w-full min-w-0">
+                {/* Learning Content Section */}
+                {sift.sections && sift.sections.length > 0 && (
+                    <div className="space-y-6 pt-4">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold tracking-tight">Learning Material</h2>
+                            <Badge variant="outline" className="h-6 bg-background">{sift.sections.length} Section{sift.sections.length !== 1 ? 's' : ''}</Badge>
+                        </div>
+                        <div className="grid gap-6">
+                            {sift.sections.map((section: any, idx: number) => (
+                                <Card key={idx} className="p-6 md:p-8 font-jakarta border-primary/10 bg-background/50 backdrop-blur-sm">
+                                    <div className="flex items-start gap-4">
+                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 text-sm font-bold mt-1">
+                                            {idx + 1}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h3 className="text-xl font-bold">{section.title}</h3>
+                                            <p className="text-sm text-muted-foreground">Section {idx + 1} of {sift.sections?.length}</p>
+                                        </div>
+                                    </div>
+                                    <div className="prose dark:prose-invert max-w-none text-lg">
+                                        <Streamdown mode="static">
+                                            {section.content}
+                                        </Streamdown>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Stats & Charts Row */}
+                <div className="grid md:grid-cols-2 gap-8 w-full min-w-0">
                             {/* Quiz Insights */}
                             <Card className="font-jakarta w-full min-w-0 col-span-2 md:col-span-1">
                             <CardHeader className="min-w-0">
@@ -875,35 +911,7 @@ export default function SiftSessionPage() {
                     </Card>
                 </div>
 
-                {/* Learning Content Section */}
-                {sift.sections && sift.sections.length > 0 && (
-                    <div className="space-y-6 pt-4">
-                        <div className="flex items-center gap-3">
-                            <h2 className="text-2xl font-bold tracking-tight">Learning Material</h2>
-                            <Badge variant="outline" className="h-6 bg-background">{sift.sections.length} Section{sift.sections.length !== 1 ? 's' : ''}</Badge>
-                        </div>
-                        <div className="grid gap-6">
-                            {sift.sections.map((section: any, idx: number) => (
-                                <Card key={idx} className="p-6 md:p-8 font-jakarta border-primary/10 bg-background/50 backdrop-blur-sm">
-                                    <div className="flex items-start gap-4">
-                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 text-sm font-bold mt-1">
-                                            {idx + 1}
-                                        </div>
-                                        <div className="space-y-1">
-                                            <h3 className="text-xl font-bold">{section.title}</h3>
-                                            <p className="text-sm text-muted-foreground">Section {idx + 1} of {sift.sections?.length}</p>
-                                        </div>
-                                    </div>
-                                    <div className="prose dark:prose-invert max-w-none text-lg">
-                                        <Streamdown mode="static">
-                                            {section.content}
-                                        </Streamdown>
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                
             </div>
 
             {/* Sidebar Stats (Placeholder) */}

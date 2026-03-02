@@ -53,6 +53,7 @@ export const siftsRelations = relations(sifts, ({ one, many }) => ({
   sessions: many(siftSessions),
   sections: many(siftSections),
   flashcards: many(flashcards),
+  learningPathSifts: many(learningPathSifts),
 }));
 
 export const siftSectionsRelations = relations(siftSections, ({ one, many }) => ({

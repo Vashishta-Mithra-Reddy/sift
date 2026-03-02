@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getLearningPathAction } from "../actions";
+import { getLearningPathAction, generateNextModuleAction } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,7 +14,9 @@ import {
     CheckmarkCircle02Icon,
     CircleIcon,
     Clock01Icon,
-    ArrowLeft01Icon
+    ArrowLeft01Icon,
+    MagicWand01Icon,
+    Loading03Icon
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -28,6 +30,7 @@ export default function LearningPathDetailsPage() {
     const id = params.id as string;
     const [path, setPath] = useState<LearningPathDetails | null>(null);
     const [loading, setLoading] = useState(true);
+    const [generating, setGenerating] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -52,8 +55,7 @@ export default function LearningPathDetailsPage() {
 
     const handleContinue = () => {
         if (!path || !path.sifts || path.sifts.length === 0) {
-             // Fallback to generating new content if empty
-            router.push(`/ai?mode=learn&pathId=${path?.id}`);
+            handleGenerateNext();
             return;
         }
 
@@ -62,9 +64,18 @@ export default function LearningPathDetailsPage() {
         router.push(`/sift/${lastSift.siftId}`);
     };
     
-    const handleGenerateNext = () => {
+    const handleGenerateNext = async () => {
         if (!path) return;
-        router.push(`/ai?mode=learn&pathId=${path.id}`);
+        setGenerating(true);
+        try {
+            const { siftId } = await generateNextModuleAction(path.id, path.goal);
+            toast.success("Module generated!");
+            router.push(`/sift/${siftId}`);
+        } catch (e) {
+            console.error(e);
+            toast.error("Failed to generate module");
+            setGenerating(false);
+        }
     };
 
     if (loading) {
@@ -92,7 +103,7 @@ export default function LearningPathDetailsPage() {
         <div className="mx-auto px-4 space-y-8 pb-8">
              {/* Header */}
              <div className="space-y-1">
-                <Button variant="ghost" className="w-fit -ml-4 text-muted-foreground bg-background" onClick={() => router.push("/learn")}>
+                <Button variant="ghost" className="w-fit -ml-4 text-muted-foreground bg-background hover:bg-muted" onClick={() => router.push("/learn")}>
                     <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4 mr-2" />
                     Back to Paths
                 </Button>
@@ -112,67 +123,67 @@ export default function LearningPathDetailsPage() {
                                 </span>
                             </div>
                         </div>
-                        
-                        {/* {path.summary && (
-                             <div className="p-4 rounded-xl bg-background border border-border/50 text-sm leading-relaxed">
-                                <h3 className="font-semibold mb-2 flex items-center gap-2">
-                                    <HugeiconsIcon icon={Mortarboard02Icon} className="h-4 w-4 text-primary" />
-                                    Current Progress
-                                </h3>
-                                <div className="text-muted-foreground whitespace-pre-wrap">
-                                    {path.summary}
-                                </div>
-                             </div>
-                        )} */}
                     </div>
 
-                    <div className="flex gap-3 shrink-0">
-                         <Button size="lg" onClick={handleContinue} className="w-full md:w-auto px-4 text-base h-10 rounded-lg">
-                            Continue Learning
+                    <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
+                         <Button size="lg" onClick={handleContinue} className="w-full sm:w-auto px-6 text-base h-11 rounded-xl" disabled={generating}>
+                            {path.sifts.length === 0 ? "Start Learning" : "Continue Learning"}
                             <HugeiconsIcon icon={ArrowRight01Icon} className="ml-2 h-4 w-4" />
                         </Button>
-                        <Button size="lg" variant="outline" onClick={handleGenerateNext} className="w-full md:w-auto px-4 text-base h-10 rounded-lg">
-                            Generate Next Module
+                        <Button size="lg" variant="outline" onClick={handleGenerateNext} className="w-full sm:w-auto px-6 text-base h-11 rounded-xl" disabled={generating}>
+                            {generating ? (
+                                <>
+                                    <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />
+                                    Generating...
+                                </>
+                            ) : (
+                                <>
+                                    {/* <HugeiconsIcon icon={MagicWand01Icon} className="mr-2 h-4 w-4" /> */}
+                                    Generate Next Module
+                                </>
+                            )}
                         </Button>
                     </div>
                 </div>
              </div>
 
              {/* Timeline / Module List */}
-             <div className="relative py-12 space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
+             <div className="relative py-8 md:py-12 space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0 md:before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
                 {path.sifts.map((item, index) => (
                     <motion.div 
                         key={item.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="relative flex items-center justify-between md:justify-normal md:even:flex-row-reverse group is-active"
+                        className="relative flex flex-col md:flex-row items-start md:items-center justify-between md:justify-normal md:even:flex-row-reverse group is-active"
                     >
                         {/* Icon */}
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-card shrink-0 md:order-1 md:group-even:-translate-x-1/2 md:group-odd:translate-x-1/2 z-10">
+                        <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 hidden md:flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-card shrink-0 z-10">
                             <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-5 h-5 text-primary" />
                         </div>
 
                         {/* Card */}
-                        <Card 
-                            className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-0 overflow-hidden transition-all cursor-pointer border-border/60 bg-card/40 backdrop-blur-sm border group-hover:border-foreground/30 gap-0"
-                            onClick={() => router.push(`/sift/${item.siftId}`)}
-                        >
-                            <CardHeader className="p-4 pb-2">
-                                <div className="flex justify-between items-start">
-                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Module {index + 1}</span>
-                                    <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                                </div>
-                                <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">
-                                    {item.sift?.source?.title || `Module ${index + 1}`}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-4 pt-0">
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                    {item.sift?.summary || "Tap to review concepts and practice questions."}
-                                </p>
-                            </CardContent>
-                        </Card>
+                        <div className="w-full md:pl-0 md:w-[calc(50%-2.5rem)]">
+                            <Card 
+                                className="overflow-hidden transition-all cursor-pointer border-border/60 bg-card/40 py-0 backdrop-blur-sm border group-hover:border-foreground/30 gap-0 hover:bg-card/60"
+                                onClick={() => router.push(`/sift/${item.siftId}`)}
+                            >
+                                <CardHeader className="p-4 pb-2">
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Module {index + 1}</span>
+                                        <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                                    </div>
+                                    <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                                        {item.sift?.source?.title || `Module ${index + 1}`}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-4 pt-0">
+                                    <p className="text-sm text-muted-foreground line-clamp-2">
+                                        {item.sift?.summary || "Tap to review concepts and practice questions."}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </motion.div>
                 ))}
                 
@@ -181,14 +192,27 @@ export default function LearningPathDetailsPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: path.sifts.length * 0.1 + 0.2 }}
-                    className="relative flex items-center justify-between md:justify-normal md:even:flex-row-reverse group"
+                    className="relative flex flex-col md:flex-row items-start md:items-center justify-between md:justify-normal md:even:flex-row-reverse group"
                 >
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-muted shrink-0 md:order-1 md:group-even:-translate-x-1/2 md:group-odd:translate-x-1/2 z-10">
-                        <HugeiconsIcon icon={CircleIcon} className="w-5 h-5 text-muted-foreground" />
+                    <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 hidden md:flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-muted shrink-0 z-10">
+                        <HugeiconsIcon icon={generating ? Loading03Icon : CircleIcon} className={cn("w-5 h-5 text-muted-foreground", generating && "animate-spin")} />
                     </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border-2 border-dashed border-muted flex items-center justify-center text-muted-foreground text-sm gap-2 cursor-pointer bg-background hover:text-primary hover:border-border transition-colors" onClick={handleGenerateNext}>
-                        <HugeiconsIcon icon={Mortarboard02Icon} className="h-4 w-4" />
-                        Generate next module...
+                    
+                    <div className="w-full md:pl-0 md:w-[calc(50%-2.5rem)]">
+                        <div 
+                            className={cn(
+                                "p-6 rounded-xl border-2 border-dashed border-muted flex flex-col items-center justify-center text-muted-foreground text-sm gap-3 cursor-pointer bg-background/50 hover:bg-background hover:text-primary hover:border-primary/20 transition-all duration-300",
+                                generating && "opacity-50 pointer-events-none"
+                            )}
+                            onClick={handleGenerateNext}
+                        >
+                            <div className="p-3 rounded-full bg-muted/50 group-hover:bg-primary/5 transition-colors">
+                                <HugeiconsIcon icon={Mortarboard02Icon} className="h-6 w-6" />
+                            </div>
+                            <span className="font-medium">
+                                {generating ? "Generating next module..." : "Generate next module..."}
+                            </span>
+                        </div>
                     </div>
                 </motion.div>
              </div>

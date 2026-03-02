@@ -72,7 +72,8 @@ export async function getSifts(userId: string): Promise<SiftWithSource[]> {
     where: and(eq(sifts.userId, userId), eq(sifts.isArchived, false)),
     orderBy: desc(sifts.createdAt),
     with: {
-        source: true
+        source: true,
+        learningPathSifts: true
     }
   });
   return result as SiftWithSource[];
@@ -83,7 +84,8 @@ export async function getArchivedSifts(userId: string): Promise<SiftWithSource[]
       where: and(eq(sifts.userId, userId), eq(sifts.isArchived, true)),
       orderBy: desc(sifts.createdAt),
       with: {
-          source: true
+          source: true,
+          learningPathSifts: true
       }
     });
     return result as SiftWithSource[];

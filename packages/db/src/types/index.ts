@@ -3,6 +3,7 @@ import * as auth from "../schema/auth";
 import * as src from "../schema/sources";
 import * as sft from "../schema/sifts";
 import * as ech from "../schema/echoes";
+import * as lp from "../schema/learning-paths";
 
 export type User = InferSelectModel<typeof auth.user>;
 export type NewUser = InferInsertModel<typeof auth.user>;
@@ -33,7 +34,9 @@ export type NewSection = InferInsertModel<typeof sft.siftSections>;
 export type Echo = InferSelectModel<typeof ech.echoes>;
 export type NewEcho = InferInsertModel<typeof ech.echoes>;
 
-export type SiftWithSource = Sift & { source: Source };
+export type LearningPathSift = InferSelectModel<typeof lp.learningPathSifts>;
+
+export type SiftWithSource = Sift & { source: Source | null; learningPathSifts?: LearningPathSift[] };
 export type SectionWithQuestions = Section & { questions: Question[] };
 export type SiftWithQuestions = Sift & { 
     questions: Question[]; 

@@ -77,9 +77,10 @@ export default function LearningPathsPageClient({ initialPaths }: LearningPathsP
 
             {paths.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 bg-background rounded-3xl border-2 border-dashed border-muted-foreground/20 animate-in fade-in slide-in-from-bottom-5 ease-out duration-500">
-                    <div className="h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center text-primary mb-4">
+                    <img src="/sift-mascot.webp" alt="Sift mascot" className="h-28 w-28" />
+                    {/* <div className="h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center text-primary">
                         <HugeiconsIcon icon={Mortarboard02Icon} className="h-10 w-10" />
-                    </div>
+                    </div> */}
                     <div className="space-y-2 max-w-md">
                         <h3 className="text-xl font-bold">No learning paths yet</h3>
                         <p className="text-muted-foreground">

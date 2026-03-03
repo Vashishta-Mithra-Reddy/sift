@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Copy01Icon, CheckmarkCircle02Icon, MagicWand01Icon, Upload01Icon, FlashIcon, PlayIcon } from "@hugeicons/core-free-icons";
+import { Copy01Icon, CheckmarkCircle02Icon, MagicWand01Icon,AiContentGenerator01Icon, Upload01Icon, FlashIcon, PlayIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { createImportedSourceAction, createImportedLearningPathAction } from "@/app/dashboard/actions";
 import { useRouter } from "next/navigation";
@@ -240,7 +240,7 @@ export default function AIPageClient() {
 
                                     {!showPlanReview && !isGeneratingQuestions && !isPlanning && (
                                         <Button size="lg" onClick={handleStartGenerate} className="gap-2 px-4 py-4">
-                                            <HugeiconsIcon icon={MagicWand01Icon} className="h-4 w-4" />
+                                            <HugeiconsIcon icon={AiContentGenerator01Icon} className="h-4 w-4" />
                                             Generate
                                         </Button>
                                     )}
@@ -278,7 +278,7 @@ export default function AIPageClient() {
                                 {isGeneratingQuestions && (
                                     <div className="space-y-4 pt-4 border-t border-dashed">
                                         <div className="flex items-center gap-2 text-primary animate-pulse">
-                                            <HugeiconsIcon icon={MagicWand01Icon} className="h-5 w-5" />
+                                            <HugeiconsIcon icon={AiContentGenerator01Icon} className="h-5 w-5" />
                                             <span className="font-medium">{learnMode ? "Generating Learning Path..." : "Generating Questions..."}</span>
                                         </div>
                                         <div className="p-4 rounded-lg border bg-muted/50 overflow-hidden opacity-50 text-xs font-mono">
@@ -368,12 +368,17 @@ export default function AIPageClient() {
         {isProcessing && (
             <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
                 <div className="flex flex-col items-center space-y-6 text-center max-w-md animate-in fade-in zoom-in duration-300 p-8 rounded-xl border bg-card">
-                    <div className="relative flex items-center justify-center">
+                    {/* <div className="relative flex items-center justify-center">
                         <div className="h-16 w-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
                         <div className="absolute inset-0 flex items-center justify-center">
                             <HugeiconsIcon icon={MagicWand01Icon} className="h-6 w-6 text-primary animate-pulse" />
                         </div>
-                    </div>
+                    </div> */}
+                    <img
+                        src="/sift-mascot.webp"
+                        alt="Sift mascot"
+                        className={`h-28 w-28 mr-3 mb-2 animate-pulse transition-all duration-500 ${isImporting || isGeneratingQuestions ? "grayscale scale-[0.95] opacity-90" : "grayscale-0 scale-100 opacity-100"}`}
+                    />
                     
                     <div className="space-y-2">
                         <h3 className="text-xl font-semibold tracking-tight">
@@ -381,9 +386,9 @@ export default function AIPageClient() {
                              isGeneratingQuestions ? (learnMode ? "Building Learning Path..." : "Generating Questions...") :
                              "Finalizing & Redirecting..."}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground text-balance">
                             {isImporting ? "Parsing data and creating your Sift." :
-                             isGeneratingQuestions ? "This may take up to 30 seconds. Please don't close this tab." :
+                             isGeneratingQuestions ? "This may take up to 30 seconds; Please don't close this tab." :
                              "Saving your new Sift and preparing the environment."}
                         </p>
                     </div>

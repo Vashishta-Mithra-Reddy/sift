@@ -193,8 +193,9 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
             ))}
             
             {!loading && sources.length === 0 && (
-                <motion.div variants={item} className="col-span-full bg-background text-center py-10 md:py-12 px-4 text-muted-foreground border-2 border-dashed rounded-xl font-jakarta">
-                    No sources yet. Upload one to get started.
+                <motion.div variants={item} className="col-span-full bg-background text-center py-10 md:py-12 px-4 text-muted-foreground border-2 border-dashed rounded-xl font-jakarta flex flex-col items-center space-y-4">
+                    <img src="/sift-mascot.webp" alt="Sift mascot" className="h-20 w-20" />
+                    <p>No sources yet; Upload to get started.</p>
                 </motion.div>
             )}
         </motion.div>

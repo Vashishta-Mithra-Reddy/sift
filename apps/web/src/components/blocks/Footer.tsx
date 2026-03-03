@@ -65,10 +65,11 @@ export default function Footer() {
         className="flex flex-col mx-auto max-w-7xl bg-foreground/5 px-8 py-8 sm:rounded-2xl backdrop-blur border border-foreground/5 bg-white/80 dark:bg-background/75 text-sm text-zinc-700 dark:text-zinc-300"
       >
         <motion.div variants={item} className="flex items-center justify-between gap-4 border-b-2 border-dashed pb-4">
-          <div className="text-base font-medium flex items-center gap-4">
-            <div className="flex flex-col">
+          <div className="text-base font-medium flex items-center gap-1">
+            <img src="/sift-mascot.webp" alt="Sift mascot" className="h-20 w-20" />
+            <div className="flex flex-col mb-2">
               <Link href="/" className="text-4xl md:text-5xl font-bold tracking-tighter">sift.</Link>
-              <p className="text-base text-muted-foreground font-medium mt-2">Active Recall Engine 
+              <p className="text-base text-muted-foreground font-medium mt-1">Active Recall Engine 
                 {/* / <span className="text-foreground/30">Quiz thingy</span> */}
                 </p>
             </div>

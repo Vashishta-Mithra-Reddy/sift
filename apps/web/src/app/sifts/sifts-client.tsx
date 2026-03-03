@@ -69,11 +69,12 @@ export function SiftsClient({ initialSifts, initialArchivedSifts }: SiftsClientP
       if (siftList.length === 0) {
           return (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 bg-background rounded-3xl border-2 border-dashed border-muted-foreground/20 animate-in fade-in slide-in-from-bottom-5 ease-out duration-500">
-                <div className="relative">
+                <img src="/sift-mascot.webp" alt="Sift mascot" className="h-28 w-28" />
+                {/* <div className="relative">
                     <div className="relative p-6 bg-background rounded-full border">
                         <HugeiconsIcon icon={FlashIcon} className="h-10 w-10 text-primary" />
                     </div>
-                </div>
+                </div> */}
                 <div className="space-y-2 max-w-sm mx-auto">
                     <h3 className="text-xl font-bold">No sifts found</h3>
                     <p className="text-muted-foreground">

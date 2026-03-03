@@ -56,6 +56,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useFCM } from "@/hooks/use-fcm";
 import { useBackground, type BackgroundPattern } from "@/components/providers/background-provider";
+import { motion, type Variants } from "framer-motion";
 
 interface SettingsPageClientProps {
   session: any;
@@ -73,8 +74,34 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
   const [activeTab, setActiveTab] = useState("profile");
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // isPending check is removed as we assume session is loaded server-side
-  // Redirect logic is also handled server-side
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
+  const contentAnimation:Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { 
+        type: "spring",
+        stiffness: 260,
+        damping: 20,
+        delay: 0.2 // Delay content until after sidebar starts
+      } 
+    }
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -160,7 +187,12 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
         orientation="vertical"
         onValueChange={setActiveTab}
       >
-        <aside className="md:w-64 shrink-0">
+        <motion.aside 
+          className="md:w-64 shrink-0"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        >
           <TabsList className="w-full h-auto py-2 px-2">
             <TabsTrigger 
               value="profile" 
@@ -192,10 +224,11 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
               Account
             </TabsTrigger>
           </TabsList>
-        </aside>
+        </motion.aside>
         
         <div className="flex-1 max-w-5xl">
           <TabsContent value="profile" className="space-y-6 mt-0">
+            <motion.div variants={contentAnimation} initial="hidden" animate="show" key="profile">
             <Card>
               <CardHeader>
                 <CardTitle>Profile</CardTitle>
@@ -237,9 +270,11 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
                 </form>
               </CardContent>
             </Card>
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="appearance" className="space-y-6 mt-0">
+            <motion.div variants={contentAnimation} initial="hidden" animate="show" key="appearance">
             <Card>
               <CardHeader>
                 <CardTitle>Appearance</CardTitle>
@@ -300,7 +335,12 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
                 </div>
 
                 {showBackground && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 animate-in slide-in-from-top-2 duration-300 fade-in">
+                  <motion.div 
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
                     {patterns.map((p) => (
                       <div 
                         key={p.id}
@@ -314,13 +354,15 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
                         <p className="text-xs font-medium text-center pb-1">{p.label}</p>
                       </div>
                     ))}
-                  </div>
+                  </motion.div>
                 )}
               </CardContent>
             </Card>
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="account" className="space-y-6 mt-0">
+            <motion.div variants={contentAnimation} initial="hidden" animate="show" key="account">
             <Card>
               <CardHeader>
                 <CardTitle>Account Security</CardTitle>
@@ -342,9 +384,11 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6 mt-0">
+            <motion.div variants={contentAnimation} initial="hidden" animate="show" key="notifications">
             <Card>
               <CardHeader>
                 <CardTitle>Notifications</CardTitle>
@@ -388,6 +432,7 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           </TabsContent>
         </div>
       </Tabs>

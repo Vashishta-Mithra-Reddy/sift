@@ -33,6 +33,7 @@ export type NewSection = InferInsertModel<typeof sft.siftSections>;
 
 export type Echo = InferSelectModel<typeof ech.echoes>;
 export type NewEcho = InferInsertModel<typeof ech.echoes>;
+export type EchoWithSource = Echo & { sourceName: string | null, moduleNumber: number | null };
 
 export type LearningPathSift = InferSelectModel<typeof lp.learningPathSifts>;
 

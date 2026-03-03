@@ -4,6 +4,7 @@ import ModeToggle from "./ModeToggle";
 import BackgroundToggle from "./BackgroundToggle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, type Variants } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { 
   BookOpen01Icon, 
@@ -30,24 +31,56 @@ export default function Footer() {
     return null;
   }
 
+  const container: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const item: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 260,
+        damping: 20,
+      }
+    },
+  };
+
   return (
     <footer className="pt-0 pb-20 md:pb-8 font-jakarta">
-      <div className="hidden md:flex md:flex-col mx-auto max-w-7xl bg-foreground/5 px-8 py-8 sm:rounded-xl backdrop-blur border border-foreground/5 bg-white/80 dark:bg-background/75 text-sm text-zinc-700 dark:text-zinc-300">
-        <div className="hidden sm:flex items-center justify-between gap-4 border-b-2 border-dashed pb-4">
+      <motion.div 
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-100px" }}
+        className="hidden md:flex md:flex-col mx-auto max-w-7xl bg-foreground/5 px-8 py-8 sm:rounded-xl backdrop-blur border border-foreground/5 bg-white/80 dark:bg-background/75 text-sm text-zinc-700 dark:text-zinc-300"
+      >
+        <motion.div variants={item} className="hidden sm:flex items-center justify-between gap-4 border-b-2 border-dashed pb-4">
           <div className="text-base font-medium flex items-center gap-4">
             <div className="flex flex-col">
               <Link href="/" className="text-xl md:text-5xl font-bold tracking-tighter">sift.</Link>
-              <p className="text-base text-muted-foreground font-medium mt-2">Active Recall Engine / <span className="text-foreground/30">Quiz thingy</span></p>
+              <p className="text-base text-muted-foreground font-medium mt-2">Active Recall Engine 
+                {/* / <span className="text-foreground/30">Quiz thingy</span> */}
+                </p>
             </div>
           </div>
           <div className="hidden md:flex items-center gap-2">
             <BackgroundToggle />
             <ModeToggle />
           </div>
-        </div>
+        </motion.div>
 
         <div className="hidden mt-8 mb-2 md:grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
-         <div className="flex flex-col gap-4">
+         <motion.div variants={item} className="flex flex-col gap-4">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company</div>
             <div className="flex flex-col gap-2 text-sm text-foreground/80">
               <Link href="/" className="hover:text-primary transition-colors w-fit flex items-center gap-2">
@@ -55,9 +88,9 @@ export default function Footer() {
                 About Sift
               </Link>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col gap-4">
+          <motion.div variants={item} className="flex flex-col gap-4">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Resources</div>
             <div className="flex flex-col gap-2 text-sm text-foreground/80">
               <Link href="/login" className="hover:text-primary transition-colors w-fit flex items-center gap-2">
@@ -69,8 +102,8 @@ export default function Footer() {
                 AI Studio
               </Link>
             </div>
-          </div>
-          <div className="flex flex-col gap-4">
+          </motion.div>
+          <motion.div variants={item} className="flex flex-col gap-4">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Product</div>
             <div className="flex flex-col gap-2 text-sm text-foreground/80">
               <Link href="/dashboard" className="hover:text-primary transition-colors w-fit flex items-center gap-2">
@@ -86,8 +119,8 @@ export default function Footer() {
                 Echoes
               </Link>
             </div>
-          </div>
-          <div className="flex flex-col gap-4">
+          </motion.div>
+          <motion.div variants={item} className="flex flex-col gap-4">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Legal</div>
             <div className="flex flex-col gap-2 text-sm text-foreground/80">
               <Link href="/policies/privacy" className="hover:text-primary transition-colors w-fit flex items-center gap-2">
@@ -99,8 +132,8 @@ export default function Footer() {
                 Terms of Service
               </Link>
             </div>
-          </div>
-          <div className="flex flex-col gap-4">
+          </motion.div>
+          <motion.div variants={item} className="flex flex-col gap-4">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Socials</div>
             <div className="flex gap-4">
                 <Link href="https://github.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -113,7 +146,7 @@ export default function Footer() {
                     <HugeiconsIcon icon={Linkedin02Icon} className="h-5 w-5" />
                 </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* <div title="footer" className="md:mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row md:border-t pt-0 md:pt-6 text-foreground/45 text-xs">
@@ -128,7 +161,7 @@ export default function Footer() {
             <p className="font-medium text-muted-foreground/50 sm:block hidden">v{process.env.NEXT_PUBLIC_APP_VERSION}</p>
           </div>
         </div> */}
-      </div>
+      </motion.div>
     </footer>
   );
 }

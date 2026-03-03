@@ -1,17 +1,37 @@
 import { db } from "..";
 import { echoes } from "../schema/echoes";
+import { sources } from "../schema/sources";
+import { sifts } from "../schema/sifts";
+import { learningPathSifts } from "../schema/learning-paths";
 import { eq, and, sql } from "drizzle-orm";
-import type { Echo, NewEcho } from "../types";
+import type { NewEcho, EchoWithSource } from "../types";
 
-export async function getEchoes(userId: string, sourceId?: string): Promise<Echo[]> {
+export async function getEchoes(userId: string, sourceId?: string): Promise<EchoWithSource[]> {
+    const query = db
+        .select({
+            id: echoes.id,
+            userId: echoes.userId,
+            sourceId: echoes.sourceId,
+            topic: echoes.topic,
+            masteryLevel: echoes.masteryLevel,
+            lastReviewedAt: echoes.lastReviewedAt,
+            createdAt: echoes.createdAt,
+            updatedAt: echoes.updatedAt,
+            sourceName: sources.title,
+            moduleNumber: learningPathSifts.order,
+        })
+        .from(echoes)
+        .leftJoin(sources, eq(echoes.sourceId, sources.id))
+        .leftJoin(sifts, eq(echoes.sourceId, sifts.sourceId))
+        .leftJoin(learningPathSifts, eq(sifts.id, learningPathSifts.siftId));
+
     if (sourceId) {
-        return await db.query.echoes.findMany({
-            where: and(eq(echoes.userId, userId), eq(echoes.sourceId, sourceId)),
-        });
+        // @ts-ignore - complex type inference
+        return await query.where(and(eq(echoes.userId, userId), eq(echoes.sourceId, sourceId)));
     }
-    return await db.query.echoes.findMany({
-        where: eq(echoes.userId, userId),
-    });
+    
+    // @ts-ignore
+    return await query.where(eq(echoes.userId, userId));
 }
 
 export async function updateEchoMastery(userId: string, sourceId: string, topic: string, level: number) {

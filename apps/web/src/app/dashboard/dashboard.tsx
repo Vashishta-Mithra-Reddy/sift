@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { SourceUploader } from "@/components/media/source-uploader";
 import { getSourcesAction, deleteSourceAction } from "@/app/dashboard/actions";
 import type { SourceWithSifts } from "@sift/auth/types";
@@ -60,6 +61,21 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
     }
   };
   
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+  
   const handleSift = async (sourceId: string) => {
       const source = sources.find(s => s.id === sourceId);
       
@@ -79,7 +95,7 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
   };
 
   return (
-    <div className="mx-auto space-y-8 md:px-4">
+    <div className="mx-auto md:px-4">
       <AlertDialog open={!!sourceToDelete} onOpenChange={(open) => !open && setSourceToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -110,61 +126,79 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="space-y-2 bg-background dark:bg-transparent rounded-xl">
-        <h1 className="text-3xl font-bold tracking-tight">Library</h1>
-        <p className="text-muted-foreground">
-            Manage your knowledge sources and start sifting.
-        </p>
-      </div>
+        <div className="space-y-2 bg-background dark:bg-transparent rounded-xl mb-8">
+            <h1 className="text-3xl font-bold tracking-tight">Library</h1>
+            <p className="text-muted-foreground">
+                Manage your knowledge sources and start sifting.
+            </p>
+        </div>
+      <motion.div 
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="space-y-8"
+      >
+        <motion.div variants={item}>
+            <SourceUploader onUploadComplete={fetchSources} />
+        </motion.div>
 
-      <SourceUploader onUploadComplete={fetchSources} />
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {sources.map((source) => (
-            <Card key={source.id} className="p-4 bg-background flex flex-col justify-between gap-4 group hover:border-primary/50 transition-colors">
-                <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                            <HugeiconsIcon icon={File01Icon} className="h-6 w-6" />
-                        </div>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => setSourceToDelete(source.id)}
-                        >
-                            <HugeiconsIcon icon={Delete01Icon} className="h-4 w-4" />
-                        </Button>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold truncate" title={source.title}>{source.title}</h3>
-                        <p className="text-xs text-muted-foreground">
-                            Added {formatDistanceToNow(new Date(source.createdAt), { addSuffix: true })}
-                        </p>
-                    </div>
-                </div>
-                
-                <Button 
-                    className="w-full gap-2" 
-                    onClick={() => handleSift(source.id)}
-                    disabled={creatingSift === source.id}
+        <motion.div 
+            className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+        >
+            {sources.map((source, index) => (
+                <motion.div 
+                    key={source.id} 
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20, delay: index * 0.05 }}
                 >
-                    {creatingSift === source.id ? (
-                        <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
-                    ) : (
-                        <HugeiconsIcon icon={BookOpen01Icon} className="h-4 w-4" />
-                    )}
-                    Sift This
-                </Button>
-            </Card>
-        ))}
-        
-        {!loading && sources.length === 0 && (
-            <div className="col-span-full bg-background text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl font-jakarta">
-                No sources yet. Upload one to get started.
-            </div>
-        )}
-      </div>
+                <Card className="p-4 bg-background flex flex-col justify-between gap-4 group hover:border-primary/50 transition-colors">
+                    <div className="space-y-3">
+                        <div className="flex items-start justify-between">
+                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                <HugeiconsIcon icon={File01Icon} className="h-6 w-6" />
+                            </div>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => setSourceToDelete(source.id)}
+                            >
+                                <HugeiconsIcon icon={Delete01Icon} className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold truncate" title={source.title}>{source.title}</h3>
+                            <p className="text-xs text-muted-foreground">
+                                Added {formatDistanceToNow(new Date(source.createdAt), { addSuffix: true })}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <Button 
+                        className="w-full gap-2" 
+                        onClick={() => handleSift(source.id)}
+                        disabled={creatingSift === source.id}
+                    >
+                        {creatingSift === source.id ? (
+                            <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <HugeiconsIcon icon={BookOpen01Icon} className="h-4 w-4" />
+                        )}
+                        Sift This
+                    </Button>
+                </Card>
+                </motion.div>
+            ))}
+            
+            {!loading && sources.length === 0 && (
+                <motion.div variants={item} className="col-span-full bg-background text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl font-jakarta">
+                    No sources yet. Upload one to get started.
+                </motion.div>
+            )}
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

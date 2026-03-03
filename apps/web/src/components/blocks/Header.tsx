@@ -55,12 +55,12 @@ export default function Header({ authButton }: HeaderProps) {
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-6 text-sm font-medium">
+        <div className="hidden md:flex items-center gap-6 text-sm font-medium transition-all duration-300 animate-in fade-in">
           {filteredNavItems.map((item) => (
              <Link 
                 key={item.key} 
                 href={item.href}
-                className="hover:text-primary transition-colors"
+                className="hover:text-primary transition-all duration-300 animate-in fade-in"
              >
                 {item.label}
              </Link>

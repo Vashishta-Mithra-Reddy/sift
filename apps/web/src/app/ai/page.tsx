@@ -1,8 +1,8 @@
 import AIPageClient from "./ai-client";
 
 export const metadata = {
-  title: "AI Studio | Sift",
-  description: "Generate study materials using AI",
+  title: "AI Studio",
+  description: "Generate courses, quizzes, flashcards and summaries using AI",
 };
 
 export default function AIPage() {

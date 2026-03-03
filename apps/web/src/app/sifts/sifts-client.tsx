@@ -95,14 +95,15 @@ export function SiftsClient({ initialSifts, initialArchivedSifts }: SiftsClientP
       }
 
       return (
-        <motion.div 
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-        >
-            {siftList.map((sift) => (
-                <motion.div key={sift.id} variants={item}>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {siftList.map((sift, index) => (
+                <motion.div 
+                    key={sift.id} 
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20, delay: index * 0.05 }}
+                >
                     <Card className="group flex flex-col overflow-hidden border-border/30 bg-card hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-none hover:shadow-primary/5 h-full">
                         <CardHeader className="pb-3">
                             <div className="flex items-start justify-between mb-4">
@@ -139,7 +140,7 @@ export function SiftsClient({ initialSifts, initialArchivedSifts }: SiftsClientP
                     </Card>
                 </motion.div>
             ))}
-        </motion.div>
+        </div>
       );
   };
 

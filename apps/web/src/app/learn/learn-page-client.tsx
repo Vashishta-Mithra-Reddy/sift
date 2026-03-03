@@ -47,7 +47,7 @@ export default function LearningPathsPageClient({ initialPaths }: LearningPathsP
         show: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.1
+                staggerChildren: 0.05
             }
         }
     };
@@ -58,9 +58,9 @@ export default function LearningPathsPageClient({ initialPaths }: LearningPathsP
     };
 
     return (
-        <div className="max-w-7xl mx-auto md:px-4 space-y-12 pb-10">
+        <div className="max-w-7xl mx-auto md:px-4 space-y-8 pb-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 bg-background" >
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 dark:bg-transparent bg-background" >
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
                         Learning Paths
@@ -76,16 +76,12 @@ export default function LearningPathsPageClient({ initialPaths }: LearningPathsP
             </div>
 
             {paths.length === 0 ? (
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex flex-col items-center justify-center py-24 text-center space-y-6 bg-background rounded-3xl border-2 border-dashed border-border"
-                >
+                <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 bg-background rounded-3xl border-2 border-dashed border-muted-foreground/20 animate-in fade-in slide-in-from-bottom-5 ease-out duration-500">
                     <div className="h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center text-primary mb-4">
                         <HugeiconsIcon icon={Mortarboard02Icon} className="h-10 w-10" />
                     </div>
                     <div className="space-y-2 max-w-md">
-                        <h3 className="text-xl font-semibold">No learning paths yet</h3>
+                        <h3 className="text-xl font-bold">No learning paths yet</h3>
                         <p className="text-muted-foreground">
                             Start a new journey! Sift will generate a personalized curriculum for any topic you want to master.
                         </p>
@@ -93,21 +89,21 @@ export default function LearningPathsPageClient({ initialPaths }: LearningPathsP
                     <Button onClick={() => router.push("/ai")} size="lg" className="transition-all h-10 px-4 text-base">
                         Start Learning
                     </Button>
-                </motion.div>
+                </div>
             ) : (
-                <motion.div 
-                    variants={container}
-                    initial="hidden"
-                    animate="show"
+                <div 
                     className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
                 >
-                    {paths.map((path) => (
-                        <motion.div key={path.id} variants={item}>
-                            <Card className="h-full flex flex-col overflow-hidden transition-shadow group ring-0 border border-border/80 bg-background backdrop-blur-sm gap-3">
-                                <CardHeader className="flex justify-between items-center pt-1">
-                                    {/* <div className="flex justify-between items-start gap-4">
-                                        
-                                    </div> */}
+                    {paths.map((path, index) => (
+                        <motion.div 
+                            key={path.id} 
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-50px" }}
+                            transition={{ type: "spring", stiffness: 260, damping: 20, delay: (index % 12) * 0.05 }}
+                        >
+                            <Card className="group h-full flex flex-col overflow-hidden border-border/30 bg-card hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-none hover:shadow-primary/5 gap-3">
+                                <CardHeader className="flex justify-between items-center pt-0 pb-2">
                                     <CardTitle className="flex flex-row justify-between items-center text-xl font-semibold line-clamp-2 leading-tight group-hover:text-primary transition-colors">
                                         {path.title}
                                     </CardTitle>
@@ -134,7 +130,7 @@ export default function LearningPathsPageClient({ initialPaths }: LearningPathsP
                                         )}
                                     </div>
                                 </CardContent>
-                                <CardFooter className="pt-4">
+                                <CardFooter className="pt-4 pb-6">
                                     <Button 
                                         className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300" 
                                         onClick={() => handleResume(path)}
@@ -146,7 +142,7 @@ export default function LearningPathsPageClient({ initialPaths }: LearningPathsP
                             </Card>
                         </motion.div>
                     ))}
-                </motion.div>
+                </div>
             )}
         </div>
     );

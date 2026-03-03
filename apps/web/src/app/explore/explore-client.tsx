@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FlashIcon, ArrowRight01Icon, Time01Icon, Search01Icon, Globe02Icon, SortByUp01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,21 @@ export default function ExplorePageClient({ initialSifts }: ExplorePageClientPro
           return 0;
       }
     });
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
 
   return (
     <div className="max-w-7xl mx-auto md:px-4 space-y-8 pb-10">
@@ -90,11 +106,17 @@ export default function ExplorePageClient({ initialSifts }: ExplorePageClientPro
       </div>
 
       {/* Grid Section */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.div 
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+      >
         {filteredSifts.length > 0 ? (
             // Active Sifts
             filteredSifts.map((sift) => (
-                <Card key={sift.id} className="group flex flex-col overflow-hidden border-border/30 bg-card hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-none hover:shadow-primary/5">
+                <motion.div key={sift.id} variants={item}>
+                <Card className="group flex flex-col overflow-hidden border-border/30 bg-card hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-none hover:shadow-primary/5">
                     <CardHeader className="pb-3">
                         <div className="flex items-start justify-between mb-4">
                             <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:scale-105 transition-transform duration-300">
@@ -123,10 +145,11 @@ export default function ExplorePageClient({ initialSifts }: ExplorePageClientPro
                         </Link>
                     </CardFooter>
                 </Card>
+                </motion.div>
             ))
         ) : (
             // Empty State
-            <div className="col-span-full flex flex-col items-center justify-center py-20 text-center space-y-6 bg-background rounded-3xl border-2 border-dashed border-muted-foreground/20 animate-in fade-in zoom-in duration-500">
+            <motion.div variants={item} className="col-span-full flex flex-col items-center justify-center py-20 text-center space-y-6 bg-background rounded-3xl border-2 border-dashed border-muted-foreground/20 animate-in fade-in zoom-in duration-500">
                 <div className="relative">
                     {/* <div className="absolute bg-primary/20 blur-xl rounded-full" /> */}
                     <div className="relative p-6 bg-background rounded-full border">
@@ -142,9 +165,9 @@ export default function ExplorePageClient({ initialSifts }: ExplorePageClientPro
                 {searchQuery && (
                     <Button variant="outline" onClick={() => setSearchQuery("")}>Clear Search</Button>
                 )}
-            </div>
+            </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

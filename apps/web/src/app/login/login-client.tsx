@@ -22,7 +22,7 @@ export default function LoginPageClient() {
   if (isPending) return null; // Or a loading spinner
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="h-full md:min-h-[80vh] flex items-center justify-center p-4 relative overflow-hidden">
       <div className="w-full max-w-md relative z-10">
         <AnimatePresence mode="wait" initial={false}>
           {showSignIn ? (

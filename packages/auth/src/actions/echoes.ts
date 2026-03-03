@@ -1,8 +1,8 @@
 import { getEchoes as dbGetEchoes, updateEchoMastery as dbUpdateEchoMastery } from "@sift/db/queries/echoes";
 import { auth } from "../index";
-import type { Echo } from "@sift/db/types";
+import type { EchoWithSource } from "@sift/db/types";
 
-export async function getEchoes(sourceId: string | undefined, headers: Headers): Promise<Echo[]> {
+export async function getEchoes(sourceId: string | undefined, headers: Headers): Promise<EchoWithSource[]> {
   const session = await auth.api.getSession({
     headers,
   });

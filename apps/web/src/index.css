@@ -122,15 +122,22 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    @apply border-border outline-ring/50;
   }
   body {
     @apply font-jakarta bg-background text-foreground;
-    @apply bg-background text-foreground;
   }
   html {
     @apply font-jakarta;
+    scrollbar-gutter: stable;
   }
+
+  /* 3. When Shadcn locks the scroll, turn OFF the gutter. 
+    Shadcn will automatically inject a seamless padding-right 
+    that perfectly fills the space without looking empty. */
+  html:has(body[data-scroll-locked]) {
+    scrollbar-gutter: auto;
+  }
+
 }
 
 @layer components {

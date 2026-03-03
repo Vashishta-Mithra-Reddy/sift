@@ -75,12 +75,16 @@ Output Format: JSON Object
 }
 
 Rules:
-1. Break the topic into logical steps/sections (Introduction, Key Concept 1, Key Concept 2, Advanced, etc.).
-2. Each section must have "content" (Markdown) and 1-3 "questions".
-3. Questions must strictly have 4 options.
-4. Content should be concise but sufficient to answer the questions.
-5. Generate 5-10 flashcards based on the content of the sections.
-6. Generate 3-5 key takeaways that summarize the entire module.
-7. Output ONLY the JSON object, no other text.`;
+1. Create at least 5 sections and ensure each section covers a distinct topic in a clear progression.
+2. Avoid repeating concepts across sections; only include brief recap if absolutely necessary.
+3. Each section must have "content" (Markdown) and 1-3 "questions".
+4. Use digestible Markdown: short paragraphs, bullet lists, headings and such.
+5. Do not output large blocks of text; keep each paragraph to 4 to 7 sentences max.
+6. Questions must strictly have 4 options.
+7. Content should be concise but sufficient to answer the questions.
+8. Generate 5-10 flashcards based on the content of the sections.
+9. Generate 5-7 key takeaways that summarize the entire module.
+10. Output ONLY the JSON object, no other text.`;
 
-
+// Back Up
+// 1. Break the topic into logical steps/sections (Introduction, Key Concept 1, Key Concept 2, Advanced, etc.).

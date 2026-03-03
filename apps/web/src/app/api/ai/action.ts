@@ -20,13 +20,23 @@ export async function generateQuestionsAction(siftId: string, content: string, m
     if (mode === 'learn') systemPrompt = LEARNING_PATH_SYSTEM_PROMPT;
     
     let userPrompt = `Here is the content to generate questions from:\n\n${content}`;
-    if (mode === 'learn') userPrompt = `Create a learning path for: ${content}`;
+    // if (mode === 'learn') userPrompt = `Create a learning path for: ${content}`;
+    if (mode === 'learn') {
+        userPrompt = `GOAL: ${content}
+OUTPUT: Create a structured learning path JSON that follows the system rules.
+REQUIREMENTS:
+- At least 5 sections.
+- Each section covers a distinct topic with no repetition.
+- Progress from fundamentals to advanced concepts.
+- Only include brief recap if absolutely necessary.`;
+    }
 
     // Inject Context for Learning Paths
     if (mode === 'learn' && pathId) {
         const path = await getLearningPath(pathId, headerStore);
         if (path && path.summary) {
-            userPrompt = `CONTEXT: The user has already learned the following concepts:\n${path.summary}\n\nGOAL: ${content}\n\nINSTRUCTION: Create the NEXT logical module in this curriculum. Do not repeat the concepts already learned unless for brief review. Introduce new concepts that build upon the previous ones.\n\n${userPrompt}`;
+            // userPrompt = `CONTEXT: The user has already learned the following concepts:\n${path.summary}\n\nGOAL: ${content}\n\nINSTRUCTION: Create the NEXT logical module in this curriculum. Do not repeat the concepts already learned unless for brief review. Introduce new concepts that build upon the previous ones.\n\n${userPrompt}`;
+            userPrompt = `PREVIOUSLY COVERED TOPICS:\n${path.summary}\n\nGOAL: ${content}\n\nINSTRUCTION: Create the next logical module. Do not repeat any topics from the list, except for a brief recap when absolutely necessary. Introduce new concepts that build on prior knowledge. Ensure at least 5 sections and keep each section unique.\n\n${userPrompt}`;
         }
     }
 

@@ -31,7 +31,14 @@ export async function POST(req: Request) {
     const result = streamText({
       model: google("gemini-3-flash-preview"),
       system: LEARNING_PATH_SYSTEM_PROMPT,
-      prompt: `Create a learning path for: ${prompt}`,
+      // prompt: `Create a learning path for: ${prompt}`,
+      prompt: `GOAL: ${prompt}
+OUTPUT: Create a structured learning path JSON that follows the system rules.
+REQUIREMENTS:
+- At least 5 sections.
+- Each section covers a distinct topic with no repetition.
+- Progress from fundamentals to advanced concepts.
+- Only include brief recap if absolutely necessary.`,
     });
     return result.toTextStreamResponse();
   } else {

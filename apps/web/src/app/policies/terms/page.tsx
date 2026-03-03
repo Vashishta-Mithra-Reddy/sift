@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "Review Sift's terms and conditions for using the platform.",
+};
+
 export default function TermsOfService() {
   return (
     <div className="container max-w-4xl mx-auto py-12 space-y-8">

@@ -1,4 +1,5 @@
 import { getSiftsAction, getArchivedSiftsAction } from "./actions";
+import type { Metadata } from "next";
 import { SiftsClient } from "./sifts-client";
 import { Suspense } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -6,6 +7,11 @@ import { Loading03Icon } from "@hugeicons/core-free-icons";
 import { authCheck } from "../utils";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Sifts",
+  description: "Review and continue your active recall sessions.",
+};
 
 export default async function SiftsPage() {
   await authCheck();

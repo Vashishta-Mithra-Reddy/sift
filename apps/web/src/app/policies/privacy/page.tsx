@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Learn how Sift handles your data and protects your privacy.",
+};
+
 export default function PrivacyPolicy() {
   return (
     <div className="container max-w-4xl mx-auto py-12 space-y-8">

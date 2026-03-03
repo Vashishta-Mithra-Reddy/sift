@@ -193,7 +193,7 @@ export function SiftsClient({ initialSifts, initialArchivedSifts }: SiftsClientP
       </div>
 
       <Tabs defaultValue="active" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full max-w-[400px] grid-cols-2 mb-8">
+        <TabsList className="grid w-full md:max-w-[400px] grid-cols-2 mb-8">
             <TabsTrigger value="active">Active</TabsTrigger>
             <TabsTrigger value="archived" className="flex items-center gap-2">
                 <HugeiconsIcon icon={Archive02Icon} className="h-4 w-4" />

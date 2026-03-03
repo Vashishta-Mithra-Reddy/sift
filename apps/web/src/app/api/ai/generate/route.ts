@@ -1,10 +1,20 @@
 import { google } from "@ai-sdk/google";
-import { streamText} from 'ai';
+import { streamText } from "ai";
 import { SYSTEM_PROMPT, LEARNING_PATH_SYSTEM_PROMPT } from "@/lib/ai-prompts";
+import { auth } from "@sift/auth";
+import { headers } from "next/headers";
 
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const { prompt, mode } = await req.json();
 
   if (mode === "plan") {

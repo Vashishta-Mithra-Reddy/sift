@@ -22,20 +22,9 @@ export default function HomeClient() {
     },
   };
 
-  const fadeIn: Variants = {
-    hidden: { opacity: 0 },
-    show: { 
-      opacity: 1, 
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    },
-  };
-
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)] max-w-7xl mx-auto w-full">
-      <motion.div variants={fadeIn} initial="hidden" animate="show" className="w-full">
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] max-w-7xl mx-auto w-full" style={{ overflowAnchor: "none" }}>
+      <motion.div variants={item} initial="hidden" animate="show" className="w-full">
         <Hero />
       </motion.div>
 
@@ -43,7 +32,7 @@ export default function HomeClient() {
         variants={item}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.35 }}
         className="w-full"
       >
         <Features />
@@ -53,7 +42,7 @@ export default function HomeClient() {
         variants={item}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.35 }}
         className="w-full"
       >
         <HowItWorks />
@@ -64,7 +53,7 @@ export default function HomeClient() {
         className="pt-9 w-full"
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.35 }}
       >
         <Quote />
       </motion.div>
@@ -74,7 +63,7 @@ export default function HomeClient() {
         className="py-9 w-full"
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.35 }}
       >
         <FAQ />
       </motion.div>
@@ -83,7 +72,7 @@ export default function HomeClient() {
         variants={item}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.35 }}
         className="w-full"
       >
         <CTA />

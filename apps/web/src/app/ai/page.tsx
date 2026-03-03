@@ -1,3 +1,4 @@
+import { authCheck } from "../utils";
 import AIPageClient from "./ai-client";
 
 export const metadata = {
@@ -5,6 +6,7 @@ export const metadata = {
   description: "Generate courses, quizzes, flashcards and summaries using AI",
 };
 
-export default function AIPage() {
+export default async function AIPage() {
+  await authCheck();
   return <AIPageClient />;
 }

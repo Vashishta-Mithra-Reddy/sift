@@ -56,30 +56,30 @@ export default function Footer() {
   };
 
   return (
-    <footer className="pt-0 pb-20 md:pb-8 font-jakarta">
+    <footer className="pt-0 pb-12 md:pb-8 font-jakarta">
       <motion.div 
         variants={container}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
-        className="hidden md:flex md:flex-col mx-auto max-w-7xl bg-foreground/5 px-8 py-8 sm:rounded-xl backdrop-blur border border-foreground/5 bg-white/80 dark:bg-background/75 text-sm text-zinc-700 dark:text-zinc-300"
+        className="flex flex-col mx-auto max-w-7xl bg-foreground/5 px-8 py-8 sm:rounded-2xl backdrop-blur border border-foreground/5 bg-white/80 dark:bg-background/75 text-sm text-zinc-700 dark:text-zinc-300"
       >
-        <motion.div variants={item} className="hidden sm:flex items-center justify-between gap-4 border-b-2 border-dashed pb-4">
+        <motion.div variants={item} className="flex items-center justify-between gap-4 border-b-2 border-dashed pb-4">
           <div className="text-base font-medium flex items-center gap-4">
             <div className="flex flex-col">
-              <Link href="/" className="text-xl md:text-5xl font-bold tracking-tighter">sift.</Link>
+              <Link href="/" className="text-4xl md:text-5xl font-bold tracking-tighter">sift.</Link>
               <p className="text-base text-muted-foreground font-medium mt-2">Active Recall Engine 
                 {/* / <span className="text-foreground/30">Quiz thingy</span> */}
                 </p>
             </div>
           </div>
-          <div className="hidden md:flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <BackgroundToggle />
             <ModeToggle />
           </div>
         </motion.div>
 
-        <div className="hidden mt-8 mb-2 md:grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-8 mb-2 grid grid-cols-2 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
          <motion.div variants={item} className="flex flex-col gap-4">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company</div>
             <div className="flex flex-col gap-2 text-sm text-foreground/80">

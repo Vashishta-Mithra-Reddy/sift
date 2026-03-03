@@ -3,37 +3,64 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { File01Icon, CpuIcon, CheckmarkCircle02Icon, Brain02Icon } from "@hugeicons/core-free-icons";
 
+// const steps = [
+//   {
+//     icon: File01Icon,
+//     title: "Upload Source",
+//     description: "Drop your PDF, notes, or paste a link. We handle the rest."
+//   },
+//   {
+//     icon: CpuIcon,
+//     title: "AI Processing",
+//     description: "Our engine analyzes your content and extracts key concepts."
+//   },
+//   {
+//     icon: Brain02Icon,
+//     title: "Active Recall",
+//     description: "Generate intelligent quizzes that test your true understanding."
+//   },
+//   {
+//     icon: CheckmarkCircle02Icon,
+//     title: "Mastery",
+//     description: "Track your progress and close your knowledge gaps."
+//   }
+// ];
+
 const steps = [
   {
-    icon: File01Icon,
-    title: "Upload Source",
-    description: "Drop your PDF, notes, or paste a link. We handle the rest."
+    icon: Brain02Icon,
+    title: "Choose Your Goal",
+    description: "Tell Sift what you want to master and your preferred depth."
   },
   {
     icon: CpuIcon,
-    title: "AI Processing",
-    description: "Our engine analyzes your content and extracts key concepts."
+    title: "AI Builds the Path",
+    description: "Sift generates a structured course with modules and quizzes."
   },
   {
-    icon: Brain02Icon,
-    title: "Active Recall",
-    description: "Generate intelligent quizzes that test your true understanding."
+    icon: File01Icon,
+    title: "Learn by Modules",
+    description: "Work through focused lessons with clear outcomes."
   },
   {
     icon: CheckmarkCircle02Icon,
-    title: "Mastery",
-    description: "Track your progress and close your knowledge gaps."
+    title: "Track Mastery",
+    description: "Measure progress, spot gaps, and keep moving forward."
   }
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="py-12 border border-border/60 bg-background transition-colors text-card-foreground rounded-2xl">
+    <section className="py-12 border bg-background transition-colors text-card-foreground rounded-2xl">
       <div className="mx-auto px-4 md:px-0">
         <div className="text-center mb-16 space-y-2">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">How Sift Works</h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          {/* <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             From raw content to retained knowledge in four simple steps.
+          </p> */}
+          {/* <h2 className="text-3xl md:text-4xl font-bold tracking-tight">How Sift Builds Your Path</h2> */}
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            From intent to mastery in four structured steps.
           </p>
         </div>
 

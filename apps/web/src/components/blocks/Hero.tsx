@@ -18,27 +18,31 @@ export default function Hero() {
           color="#6366F1"
           // color="#312E81"
           // color="#8B5CF6"
-          noiseIntensity={1.5}
+          noiseIntensity={2.5}
           rotation={0}
         />
       </div>
 
       <div className="relative z-10 flex flex-col items-center justify-center gap-6">
         <div className="space-y-4 max-w-3xl">
-          <h1 className="text-4xl md:text-6xl font-bold font-outfit tracking-tighter text-white">
+          <h1 className="text-5xl md:text-6xl font-bold font-outfit tracking-tighter text-white">
             Turn Passive Consumption <br />
             Into <span className="text-white">Active Mastery</span>.
           </h1>
-          <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto px-2 md:px-16 text-pretty">
+          {/* <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto px-2 md:px-16 text-pretty">
             Upload any document, notes, or recording, 
             and instantly generate precision engineered quizzes to lock knowledge into your brain.
+          </p> */}
+          <p className="text-lg md:text-xl text-white/80 mx-auto px-2 md:px-16">
+            Turn any topic into an interactive course. Test your knowledge, go as deep as you need, and track your progress too.
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
           <Link href="/login">
-            <Button size="lg" variant="outline" className="h-12 rounded-xl px-8 text-lg gap-2">
-              Start Sifting
+            <Button size="lg" className="h-12 rounded-xl px-8 text-lg gap-2 bg-white text-black backdrop-blur-lg active:scale-[0.97] transition-all duration-300">
+              {/* Start Sifting */}
+              Start Learning
               <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5" />
             </Button>
           </Link>

@@ -28,7 +28,7 @@ export default function UserMenu() {
   if (!session) {
     return (
       <Link href="/login">
-        <Button variant="default" size="lg" className="px-4 py-4">Sign In</Button>
+        <Button variant="default" size="lg" className="px-4 py-4 font-semibold">Sign In</Button>
       </Link>
     );
   }

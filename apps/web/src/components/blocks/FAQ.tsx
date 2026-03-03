@@ -14,9 +14,13 @@ const faqs = [
     question: "Is Sift free to use?",
     answer: "Yes! There's a generous free plan to get you started. We also have premium options for power users."
   },
+  // {
+  //   question: "What can I upload?",
+  //   answer: "You can upload PDFs, notes, or even paste links to articles. Sift handles almost any text-based content you throw at it."
+  // },
   {
-    question: "What can I upload?",
-    answer: "You can upload PDFs, notes, or even paste links to articles. Sift handles almost any text-based content you throw at it."
+    question: "How do AI courses work?",
+    answer: "Sift builds a structured course with modules, checkpoints, and progress tracking tailored to your depth."
   },
   {
     question: "Is my data secure?",

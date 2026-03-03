@@ -37,6 +37,7 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     href: { pathname: "/explore" },
     pathname: "/explore",
     icon: Globe02Icon,
+    requiresAuth: true,
   },
   {
     key: "ai",

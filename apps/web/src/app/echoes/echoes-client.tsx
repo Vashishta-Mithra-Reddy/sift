@@ -108,14 +108,14 @@ export default function EchoesPageClient({ initialEchoes }: EchoesPageClientProp
         </motion.div>
       )}
 
-      <motion.div variants={item} className="space-y-4">
+      <motion.div variants={item} className="space-y-4 min-w-0 w-full max-w-full">
         <h2 className="text-xl font-semibold">Topic Mastery</h2>
         <div className="flex flex-col gap-4">
             {echoes.map((echo, index) => (
                 <motion.div 
                     variants={item} 
                     key={echo.id} 
-                    className="flex items-center justify-between p-4 border rounded-xl bg-card gap-4"
+                    className="flex items-center justify-between p-4 border rounded-xl bg-card gap-4 w-full"
                     initial="hidden"
                     whileInView="show"
                     viewport={{ once: true, margin: "-50px" }}
@@ -123,13 +123,13 @@ export default function EchoesPageClient({ initialEchoes }: EchoesPageClientProp
                 >
                     <div className="space-y-1 flex-1 min-w-0">
                         <div className="flex items-baseline gap-1 min-w-0">
-                            <div className="font-medium truncate flex gap-1">
+                            <div className="font-medium line-clamp-2 md:line-clamp-1 max-w-[97%]">
                               {echo.moduleNumber !== null && echo.moduleNumber > 0 && (
                                 <span className="font-medium">
                                     Module {echo.moduleNumber}: 
                                 </span>
                               )}
-                            {echo.topic}</div>
+                            {" "+echo.topic}</div>
                         </div>
                         <div className="text-xs text-muted-foreground">
                             Last reviewed: {new Date(echo.lastReviewedAt).toLocaleDateString()}

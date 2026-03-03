@@ -85,7 +85,6 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
       }
 
       if (source?.isPasted) {
-          // Fallback if no specific sift found but marked as pasted/ready
           router.push("/ai");
       } else {
           toast.info("AI Generation coming soon!", {
@@ -95,9 +94,9 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
   };
 
   return (
-    <div className="mx-auto md:px-4">
+    <div className="mx-auto md:px-4 w-full max-w-full">
       <AlertDialog open={!!sourceToDelete} onOpenChange={(open) => !open && setSourceToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-md sm:w-full rounded-xl">
           <AlertDialogHeader>
             <div className="w-full flex flex-col justify-center items-center gap-2">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
@@ -119,7 +118,7 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={isDeleting}
             >
-              {isDeleting && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
+              {isDeleting && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin mr-2" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -136,14 +135,14 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
         variants={container}
         initial="hidden"
         animate="show"
-        className="space-y-8"
+        className="space-y-6 md:space-y-8"
       >
-        <motion.div variants={item}>
+        <motion.div variants={item} className="w-full">
             <SourceUploader onUploadComplete={fetchSources} />
         </motion.div>
 
         <motion.div 
-            className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+            className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
         >
             {sources.map((source, index) => (
                 <motion.div 
@@ -152,32 +151,33 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-50px" }}
                     transition={{ type: "spring", stiffness: 260, damping: 20, delay: index * 0.05 }}
+                    className="min-w-0"
                 >
-                <Card className="p-4 bg-background flex flex-col justify-between gap-4 group hover:border-primary/50 transition-colors">
-                    <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <Card className="p-4 bg-background flex flex-col justify-between gap-4 group hover:border-primary/50 transition-colors overflow-hidden h-full">
+                    <div className="space-y-3 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="p-2 bg-primary/10 rounded-lg text-primary shrink-0">
                                 <HugeiconsIcon icon={File01Icon} className="h-6 w-6" />
                             </div>
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="text-muted-foreground hover:text-destructive opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0"
                                 onClick={() => setSourceToDelete(source.id)}
                             >
                                 <HugeiconsIcon icon={Delete01Icon} className="h-4 w-4" />
                             </Button>
                         </div>
-                        <div>
-                            <h3 className="font-semibold truncate" title={source.title}>{source.title}</h3>
-                            <p className="text-xs text-muted-foreground">
+                        <div className="min-w-0">
+                            <h3 className="font-semibold truncate pr-2" title={source.title}>{source.title}</h3>
+                            <p className="text-xs text-muted-foreground mt-1 truncate">
                                 Added {formatDistanceToNow(new Date(source.createdAt), { addSuffix: true })}
                             </p>
                         </div>
                     </div>
                     
                     <Button 
-                        className="w-full gap-2" 
+                        className="w-full gap-2 mt-2" 
                         onClick={() => handleSift(source.id)}
                         disabled={creatingSift === source.id}
                     >
@@ -193,7 +193,7 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
             ))}
             
             {!loading && sources.length === 0 && (
-                <motion.div variants={item} className="col-span-full bg-background text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl font-jakarta">
+                <motion.div variants={item} className="col-span-full bg-background text-center py-10 md:py-12 px-4 text-muted-foreground border-2 border-dashed rounded-xl font-jakarta">
                     No sources yet. Upload one to get started.
                 </motion.div>
             )}

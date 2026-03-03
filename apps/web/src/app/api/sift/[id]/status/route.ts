@@ -1,5 +1,6 @@
 
 import { getSift } from "@sift/auth/actions/sifts";
+import { auth } from "@sift/auth";
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
 import { eventBus } from "@/lib/events";
@@ -12,6 +13,13 @@ export async function GET(
 ) {
   const { id } = await params;
   const headerStore = await headers();
+  const session = await auth.api.getSession({
+    headers: headerStore,
+  });
+
+  if (!session?.user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   const encoder = new TextEncoder();
 

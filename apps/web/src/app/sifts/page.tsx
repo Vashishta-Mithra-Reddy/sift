@@ -3,10 +3,12 @@ import { SiftsClient } from "./sifts-client";
 import { Suspense } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Loading03Icon } from "@hugeicons/core-free-icons";
+import { authCheck } from "../utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function SiftsPage() {
+  await authCheck();
   const [active, archived] = await Promise.all([
     getSiftsAction(),
     getArchivedSiftsAction()

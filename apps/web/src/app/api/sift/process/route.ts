@@ -2,6 +2,8 @@
 
 import { NextResponse } from "next/server";
 import { processSiftContent } from "@/lib/content-processor";
+import { auth } from "@sift/auth";
+import { headers } from "next/headers";
 
 type IncomingBody = {
   siftId: string;
@@ -10,6 +12,14 @@ type IncomingBody = {
 
 export async function POST(req: Request) {
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = (await req.json()) as IncomingBody;
     const { siftId, content } = body;
 

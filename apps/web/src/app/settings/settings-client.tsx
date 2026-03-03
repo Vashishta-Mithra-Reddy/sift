@@ -216,13 +216,13 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
               <HugeiconsIcon icon={PaintBoardIcon} className="h-4 w-4" />
               Appearance
             </TabsTrigger>
-            <TabsTrigger 
+            {/* <TabsTrigger 
               value="account"  
               className="w-full justify-start px-3 py-2 h-10 font-medium transition-colors gap-2"
             >
               <HugeiconsIcon icon={Shield01Icon} className="h-4 w-4" />
               Account
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
         </motion.aside>
         
@@ -361,7 +361,7 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
             </motion.div>
           </TabsContent>
 
-          <TabsContent value="account" className="space-y-6 mt-0">
+          {/* <TabsContent value="account" className="space-y-6 mt-0">
             <motion.div variants={contentAnimation} initial="hidden" animate="show" key="account">
             <Card>
               <CardHeader>
@@ -385,7 +385,7 @@ export default function SettingsPageClient({ session }: SettingsPageClientProps)
               </CardContent>
             </Card>
             </motion.div>
-          </TabsContent>
+          </TabsContent> */}
 
           <TabsContent value="notifications" className="space-y-6 mt-0">
             <motion.div variants={contentAnimation} initial="hidden" animate="show" key="notifications">

@@ -1,10 +1,20 @@
 import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { google } from "@ai-sdk/google";
 import { streamText, type UIMessage, convertToModelMessages, wrapLanguageModel } from "ai";
+import { auth } from "@sift/auth";
+import { headers } from "next/headers";
 
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   const model = wrapLanguageModel({

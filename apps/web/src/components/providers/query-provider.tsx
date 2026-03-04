@@ -6,7 +6,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import localforage from "localforage";
 import { authClient } from "@/lib/auth-client";
-import { LoadingState } from "../ui/loading-state";
+import { Loading } from "../ui/loading-state";
 
 const PERSISTED_QUERY_KEYS = [
   "sift",
@@ -62,7 +62,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   }, [userId]);
 
   if (!authReady.current) {
-    return <LoadingState />
+    return <Loading />
   }
 
   return (

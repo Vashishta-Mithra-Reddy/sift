@@ -42,7 +42,7 @@ export default function Header({ authButton }: HeaderProps) {
 
   return (
     <header className={
-      `sticky top-0 z-50 border-b-0 transition-all duration-500 font-jakarta ${
+      `print:hidden sticky top-0 z-50 border-b-0 transition-all duration-500 font-jakarta ${
         scrolled ? "pt-0 sm:pt-3" : "sm:pt-6 pt-0"
       }`
     }>

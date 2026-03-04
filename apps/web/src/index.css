@@ -205,3 +205,19 @@ button {
   scrollbar-width: thin;
   scrollbar-color: var(--muted-foreground) transparent;
 }
+
+@page {
+  size: auto;
+  margin: 0mm;
+}
+
+@media print {
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .wrapperx {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+}

@@ -56,7 +56,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="pt-0 pb-12 md:pb-8 font-jakarta">
+    <footer className="print:hidden pt-0 pb-12 md:pb-8 font-jakarta">
       <motion.div 
         variants={container}
         initial="hidden"

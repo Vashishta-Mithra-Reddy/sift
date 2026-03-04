@@ -32,19 +32,19 @@ export const NAVIGATION_ITEMS: NavItem[] = [
   //   hideOnDesktop: true,
   // },
   {
-    key: "explore",
-    label: "Explore",
-    href: { pathname: "/explore" },
-    pathname: "/explore",
-    icon: Globe02Icon,
-    requiresAuth: true,
-  },
-  {
     key: "ai",
     label: "AI Studio",
     href: { pathname: "/ai" },
     pathname: "/ai",
     icon: AiCloud01Icon,
+    requiresAuth: true,
+  },
+  {
+    key: "explore",
+    label: "Explore",
+    href: { pathname: "/explore" },
+    pathname: "/explore",
+    icon: Globe02Icon,
     requiresAuth: true,
   },
   {

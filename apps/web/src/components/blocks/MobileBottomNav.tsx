@@ -22,7 +22,7 @@ export default function MobileBottomNav() {
   });
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+    <div className="print:hidden fixed bottom-0 left-0 right-0 z-50 md:hidden">
       <div className="bg-white/80 dark:bg-black/60 backdrop-blur-lg border-t border-border flex items-center justify-around px-2 py-2 safe-area-bottom">
         {filteredNavItems.map((item) => {
           const href = typeof item.href === 'string' ? item.href : item.href.pathname || '/';

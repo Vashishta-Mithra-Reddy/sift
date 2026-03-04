@@ -65,7 +65,7 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   return (
     <BackgroundContext.Provider value={{ showBackground, setShowBackground: toggleBackground, pattern, setPattern: changePattern }}>
       {showBackground && (
-        <div className="fixed inset-0 -z-50 h-full w-full bg-white dark:bg-black pointer-events-none transition-opacity duration-500">
+        <div className="print:hidden fixed inset-0 -z-50 h-full w-full bg-white dark:bg-black pointer-events-none transition-opacity duration-500">
           <div className={`absolute h-full w-full ${getPatternStyle()}`} />
         </div>
       )}

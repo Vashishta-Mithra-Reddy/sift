@@ -4,11 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getSiftAction, getSiftSessionsAction, deleteSessionAction, updateSiftAction, deleteSiftAction } from "../actions";
+import { getSiftAction, getSiftSessionsAction, deleteSessionAction, updateSiftAction, deleteSiftAction, getFlashcardsAction } from "../actions";
 import { getLearningPathForSiftAction, generateNextModuleAction } from "../../learn/actions";
 import { Streamdown } from "streamdown";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, PlayIcon, Time01Icon, ChartHistogramIcon, Delete01Icon, Target02Icon, StarIcon, TrendingUp, MoreVerticalIcon, Globe02Icon, SquareLock02Icon, Archive02Icon, Idea01Icon, Book01Icon, ArrowRightIcon, Layers01Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, CheckmarkCircle02Icon, Cancel01Icon, HelpCircleIcon, Loading03Icon, PlayIcon, Time01Icon, ChartHistogramIcon, Delete01Icon, Target02Icon, StarIcon, TrendingUp, MoreVerticalIcon, Globe02Icon, SquareLock02Icon, Archive02Icon, Idea01Icon, Book01Icon, ArrowRightIcon, Layers01Icon, PrinterIcon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,6 +84,13 @@ export default function SiftSessionPageClient({ id }: SiftSessionPageClientProps
     gcTime: 1000 * 60 * 60 * 24 * 365,
     retry: 2,
     retryDelay: 1000,
+  });
+
+  const { data: flashcards } = useQuery({
+    queryKey: ["flashcards", id],
+    queryFn: () => getFlashcardsAction(id),
+    staleTime: Infinity,
+    enabled: !!id,
   });
 
   const loadSessions = useCallback(async () => {
@@ -228,7 +235,8 @@ export default function SiftSessionPageClient({ id }: SiftSessionPageClientProps
 
   // --- DETAILS VIEW ---
   return (
-    <div className="max-w-7xl mx-auto space-y-8 md:px-4">
+    <div className="max-w-7xl mx-auto md:px-4 print:max-w-none print:px-[14mm] print:space-y-0">
+        <div className="space-y-8 print:hidden">
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -254,40 +262,45 @@ export default function SiftSessionPageClient({ id }: SiftSessionPageClientProps
                     Back to Library
                 </Button>
                 
-                {sift.isOwner && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <HugeiconsIcon icon={MoreVerticalIcon} className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-fit">
-                            <DropdownMenuItem onClick={handleToggleVisibility}>
-                                {sift.isPublic ? (
-                                    <>
-                                        <HugeiconsIcon icon={SquareLock02Icon} className="mr-2 h-4 w-4" />
-                                        Make Private
-                                    </>
-                                ) : (
-                                    <>
-                                        <HugeiconsIcon icon={Globe02Icon} className="mr-2 h-4 w-4" />
-                                        Make Public
-                                    </>
-                                )}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleToggleArchive}>
-                                <HugeiconsIcon icon={Archive02Icon} className="mr-2 h-4 w-4" />
-                                {sift.isArchived ? "Unarchive Sift" : "Archive Sift"}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive hover:text-destructive focus:text-destructive" onClick={() => setIsDeleteDialogOpen(true)}>
-                                <HugeiconsIcon icon={Delete01Icon} className="mr-2 h-4 w-4 focus:text-destructive hover:text-destructive group-hover:text-destructive text-destructive" />
-                                Delete Sift
-                            </DropdownMenuItem>
-                            
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => window.print()} title="Print Sift" className="text-muted-foreground hover:text-primary">
+                         <HugeiconsIcon icon={PrinterIcon} className="size-5" />
+                    </Button>
+                    {sift.isOwner && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <HugeiconsIcon icon={MoreVerticalIcon} className="size-6" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-fit">
+                                <DropdownMenuItem onClick={handleToggleVisibility}>
+                                    {sift.isPublic ? (
+                                        <>
+                                            <HugeiconsIcon icon={SquareLock02Icon} className="mr-2 h-4 w-4" />
+                                            Make Private
+                                        </>
+                                    ) : (
+                                        <>
+                                            <HugeiconsIcon icon={Globe02Icon} className="mr-2 h-4 w-4" />
+                                            Make Public
+                                        </>
+                                    )}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleToggleArchive}>
+                                    <HugeiconsIcon icon={Archive02Icon} className="mr-2 h-4 w-4" />
+                                    {sift.isArchived ? "Unarchive Sift" : "Archive Sift"}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-destructive hover:text-destructive focus:text-destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+                                    <HugeiconsIcon icon={Delete01Icon} className="mr-2 h-4 w-4 focus:text-destructive hover:text-destructive group-hover:text-destructive text-destructive" />
+                                    Delete Sift
+                                </DropdownMenuItem>
+                                
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                </div>
             </div>
 
             <div className="space-y-2 bg-background dark:bg-transparent rounded-xl">
@@ -913,6 +926,177 @@ export default function SiftSessionPageClient({ id }: SiftSessionPageClientProps
             <div className="space-y-6">
                 {/* Add global mastery stats here later */}
             </div>
+        </div>
+      </div>
+
+        {/* Printable Content */}
+        <div className="hidden print:block text-black font-jakarta">
+            <table className="w-full">
+                <thead><tr><td><div className="h-[15mm]"></div></td></tr></thead>
+                <tbody><tr><td><div className="space-y-8">
+            {/* Header / Cover Page */}
+            <div className="text-center space-y-6 pb-12 mb-12 break-inside-avoid min-h-[50vh] flex flex-col justify-center">
+                <div className="flex justify-center mb-6">
+                    <img src="/sift-mascot.png" alt="Sift" className="h-24 w-24 opacity-80" />
+                </div>
+                <h1 className="text-5xl font-extrabold tracking-tight">{titlePrefix}</h1>
+                <h2 className="text-5xl font-extrabold tracking-tight">{sift.source?.title}</h2>
+                <div className="flex flex-col items-center justify-center gap-2 text-gray-500 pt-4">
+                    <div className="flex items-center gap-2">
+                         <span className="font-semibold">{sift.questions.length} Questions</span>
+                         <span>•</span>
+                         <span>Generated by Sift</span>
+                    </div>
+                    {/* <p className="text-sm">Printed on {new Date().toLocaleDateString()}</p> */}
+                </div>
+            </div>
+
+            {/* Takeaways */}
+            {sift.takeaways && (sift.takeaways as any[]).length > 0 && (
+                <section className="break-before-page break-inside-auto">
+                    <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
+                        {/* <HugeiconsIcon icon={Idea01Icon} className="h-6 w-6" /> */}
+                        Key Takeaways
+                    </h2>
+                    <div className="grid grid-cols-1 gap-6">
+                        {(sift.takeaways as any[]).map((t: any, i: number) => (
+                            <div key={i} className="break-inside-avoid">
+                                <h3 className="font-bold text-xl mb-2 flex items-start gap-1">
+                                    <span>{i + 1}.</span>
+                                    {t.title}
+                                </h3>
+                                <p className="text-lg text-gray-700 text-justify">{t.content}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {/* Learning Material */}
+            {sift.sections && sift.sections.length > 0 && (
+                <section className="break-before-page">
+                    <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
+                        Learning Material
+                    </h2>
+                    <div className="space-y-8">
+                        {sift.sections.map((section: any, i: number) => (
+                            <div key={i} className="break-inside-avoid">
+                                <h3 className="text-xl font-bold mb-4 flex items-center gap-1">
+                                    {/* <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-sm">{i + 1}</span> */}
+                                    <span>{i + 1}.</span>
+                                    {section.title}
+                                </h3>
+                                <div className="prose max-w-none text-justify text-gray-800">
+                                    <Streamdown mode="static">{section.content}</Streamdown>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {/* Flashcards */}
+            {flashcards && flashcards.length > 0 && (
+                <section className="break-before-page">
+                     <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
+                        {/* <HugeiconsIcon icon={Layers01Icon} className="h-6 w-6" /> */}
+                        Flashcards
+                    </h2>
+                    {/* <p className="text-sm text-gray-500 mb-6 italic">Cut along the dotted lines to create your flashcards.</p> */}
+                    <table className="w-full border-collapse">
+                        <tbody>
+                            {flashcards.map((card: any, i: number) => (
+                                <tr key={i} className="break-inside-avoid h-[200px]">
+                                    <td className="w-1/2 p-8 border border-dashed border-gray-300 align-top">
+                                        <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider block mb-2 font-outfit">Front</span>
+                                        <p className="font-semibold text-xl leading-snug">{card.front}</p>
+                                    </td>
+                                    <td className="w-1/2 p-8 border border-dashed border-gray-300 align-top">
+                                        <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider block mb-2 font-outfit">Back</span>
+                                        <p className="text-gray-600 leading-relaxed">{card.back}</p>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </section>
+            )}
+
+            {/* Quiz Questions (Clean) */}
+            <section className="break-before-page">
+                <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
+                    {/* <HugeiconsIcon icon={HelpCircleIcon} className="h-6 w-6" /> */}
+                    Practice Quiz
+                </h2>
+                <div className="space-y-8">
+                    {sift.questions.map((q: any, i: number) => (
+                        <div key={i} className="break-inside-avoid">
+                            <div className="flex gap-2">
+                                <span className="text-lg font-semibold">{i + 1}.</span>
+                                <div className="space-y-4 flex-1">
+                                    <p className="text-xl font-medium">{q.question}</p>
+                                    <div className="grid grid-cols-1 gap-2 pl-2">
+                                        {(q.options as string[])?.map((opt: string, j: number) => (
+                                            <div key={j} className="flex items-start gap-1 text-base">
+                                                <span className="font-semibold text-gray-500 min-w-[1.25rem]">{String.fromCharCode(65 + j)})</span>
+                                                {/* <div className="mt-0.5 w-4 h-4 border border-gray-300 rounded-full flex items-center justify-center shrink-0" /> */}
+                                                <span className="text-gray-600">{opt}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* Answer Key & Explanations */}
+            <section className="break-before-page">
+                <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
+                    {/* <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-6 w-6" /> */}
+                    Answer Key & Explanations
+                </h2>
+                <div className="space-y-8">
+                    {sift.questions.map((q: any, i: number) => (
+                        <div key={i} className="break-inside-avoid">
+                            <div className="flex gap-2">
+                                <span className="text-xl font-semibold">{i + 1}.</span>
+                                <div className="space-y-3 flex-1">
+                                    <p className="text-xl font-medium text-gray-900">{q.question}</p>
+                                    
+                                    <div className="text-base text-gray-900 font-semibold mt-2">
+                                        <span className="font-semibold text-gray-900">Option: </span>
+                                        {(() => {
+                                            const idx = (q.options as string[])?.findIndex((opt: string) => opt === q.answer) ?? -1;
+                                            return idx !== -1 ? String.fromCharCode(65 + idx) : "?";
+                                        })()}
+                                    </div>
+
+                                    <div className="text-base text-gray-600 mt-2">
+                                        <span className="font-semibold text-gray-900">Answer: </span>
+                                        {q.answer}
+                                    </div>
+
+                                    {q.explanation && (
+                                        <div className="text-base text-gray-600 mt-2">
+                                            <span className="font-semibold text-gray-900">Explanation: </span>
+                                            {q.explanation}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+             {/* <div className="text-center text-xs text-gray-400 mt-4">
+                Printed from Sift • {new Date().toLocaleDateString()}
+            </div> */}
+            </div></td></tr></tbody>
+            <tfoot><tr><td><div className="h-[15mm]"></div></td></tr></tfoot>
+            </table>
         </div>
     </div>
   );

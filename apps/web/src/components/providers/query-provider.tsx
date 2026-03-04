@@ -62,8 +62,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   }, [userId]);
 
   if (!authReady.current) {
-    <LoadingState />
-    return null; 
+    return <LoadingState />
   }
 
   return (

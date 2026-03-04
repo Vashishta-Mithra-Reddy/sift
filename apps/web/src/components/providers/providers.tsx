@@ -10,15 +10,15 @@ import { QueryProvider } from "./query-provider";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <QueryProvider>
       <ThemeProvider attribute="class" enableSystem defaultTheme="system">
-        <BackgroundProvider>
-          <ServiceWorkerRegister />
-          <FCMInitializer />
-          {children}
-          <Toaster/>
-        </BackgroundProvider>
+        <QueryProvider>
+          <BackgroundProvider>
+            <ServiceWorkerRegister />
+            <FCMInitializer />
+            {children}
+            <Toaster/>
+          </BackgroundProvider>
+        </QueryProvider>
       </ThemeProvider>
-    </QueryProvider>
   );
 }

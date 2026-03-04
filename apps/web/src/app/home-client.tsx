@@ -10,14 +10,15 @@ import Quote from "@/components/blocks/Quote";
 
 export default function HomeClient() {
   const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 36 },
     show: { 
       opacity: 1, 
       y: 0,
       transition: {
         type: "spring",
-        stiffness: 260,
-        damping: 20,
+        stiffness: 140,
+        damping: 22,
+        mass: 0.9
       }
     },
   };

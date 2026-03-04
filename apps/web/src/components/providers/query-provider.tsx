@@ -63,6 +63,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
 
   if (!authReady.current) {
     return <Loading />
+    // return null;
   }
 
   return (
@@ -80,7 +81,9 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
         },
       }}
     >
+      <div className="transition-all animate-in fade-in duration-500">
       {children}
+      </div>
     </PersistQueryClientProvider>
   );
 }

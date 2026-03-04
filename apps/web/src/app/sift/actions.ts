@@ -1,83 +1,134 @@
 "use server";
 
-import { getSift, createSiftSession, updateSiftSession, addSessionAnswers, getSiftSessions, getSiftSessionDetails, deleteSiftSession, updateSift, deleteSift } from "@sift/auth/actions/sifts";
+import { createSiftSession, updateSiftSession, addSessionAnswers, getSiftSessions, getSiftSessionDetails, deleteSiftSession, updateSift, deleteSift, getSift } from "@sift/auth/actions/sifts";
 import { updateEchoMastery, batchUpdateEchoesAction as batchUpdateEchoes } from "@sift/auth/actions/echoes";
 import { addFlashcards, getFlashcards } from "@sift/auth/actions/flashcards";
-import { headers } from "next/headers";
+import { revalidateTag, unstable_cache } from "next/cache";
 import type { NewSift } from "@sift/auth/types";
-import { auth } from "@sift/auth";
+import { getRequestContext } from "@/lib/cache";
 
 export async function getSiftAction(id: string) {
-    const headerStore = await headers();
-    const sift = await getSift(id, headerStore);
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
+    const cached = unstable_cache(
+        () => getSift(id, headerStore),
+        ["sift-detail", id, userId],
+        { tags: [`sift-detail:${id}`] }
+    );
+    const sift = await cached();
     if (!sift) return null;
-
-    const session = await auth.api.getSession({
-        headers: headerStore
-    });
-    
     return {
         ...sift,
-        isOwner: session?.user?.id === sift.userId
+        isOwner: sift.userId === userId
     };
 }
 
 export async function updateSiftAction(id: string, data: Partial<NewSift>) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     await updateSift(id, data, headerStore);
+    revalidateTag(`sift-detail:${id}`, "default");
+    revalidateTag(`sifts-active:${userId}`, "default");
+    revalidateTag(`sifts-archived:${userId}`, "default");
+    revalidateTag(`sifts-public:global`, "default");
 }
 
 export async function deleteSiftAction(id: string) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     await deleteSift(id, headerStore);
+    revalidateTag(`sift-detail:${id}`, "default");
+    revalidateTag(`sifts-active:${userId}`, "default");
+    revalidateTag(`sifts-archived:${userId}`, "default");
+    revalidateTag(`sifts-public:global`, "default");
 }
 
 export async function getSiftSessionsAction(siftId: string) {
-    const headerStore = await headers();
-    return await getSiftSessions(siftId, headerStore);
+    const { headerStore } = await getRequestContext();
+    return getSiftSessions(siftId, headerStore);
 }
 
 export async function getSiftSessionDetailsAction(sessionId: string) {
-    const headerStore = await headers();
-    return await getSiftSessionDetails(sessionId, headerStore);
+    const { headerStore } = await getRequestContext();
+    return getSiftSessionDetails(sessionId, headerStore);
 }
 
 export async function createSessionAction(siftId: string) {
-    const headerStore = await headers();
-    return await createSiftSession(siftId, headerStore);
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
+    const sessionId = await createSiftSession(siftId, headerStore);
+    return sessionId;
 }
 
 export async function saveSessionAnswersAction(sessionId: string, answers: { questionId: string; userAnswer: string; isCorrect: boolean }[]) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     await addSessionAnswers(sessionId, answers, headerStore);
 }
 
 export async function updateEchoMasteryAction(sourceId: string, topic: string, level: number) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     await updateEchoMastery(sourceId, topic, level, headerStore);
+    revalidateTag(`echoes-progress:${userId}`, "default");
 }
 
 export async function batchUpdateEchoesAction(sourceId: string, updates: { topic: string; level: number }[]) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     await batchUpdateEchoes(sourceId, updates, headerStore);
+    revalidateTag(`echoes-progress:${userId}`, "default");
 }
 
 export async function completeSessionAction(id: string, score: number) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     await updateSiftSession(id, { status: "completed", score, completedAt: new Date() }, headerStore);
 }
 
 export async function deleteSessionAction(sessionId: string) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     await deleteSiftSession(sessionId, headerStore);
 }
 
 export async function addFlashcardsAction(siftId: string, cards: { front: string; back: string }[]) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     await addFlashcards(siftId, cards, headerStore);
+    revalidateTag(`flashcards-detail:${siftId}`, "default");
+    revalidateTag(`sift-detail:${siftId}`, "default");
 }
 
 export async function getFlashcardsAction(siftId: string) {
-    const headerStore = await headers();
-    return await getFlashcards(siftId, headerStore);
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
+    const cached = unstable_cache(
+        () => getFlashcards(siftId, headerStore),
+        ["flashcards-detail", siftId, userId],
+        { tags: [`flashcards-detail:${siftId}`] }
+    );
+    return cached();
 }

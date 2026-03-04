@@ -1,29 +1,56 @@
 "use server";
 
-import { getLearningPaths, getLearningPath, getLearningPathForSift, addSiftToPath } from "@sift/auth/actions/learning-paths";
+import { addSiftToPath, getLearningPaths, getLearningPath, getLearningPathForSift } from "@sift/auth/actions/learning-paths";
 import { createSift } from "@sift/auth/actions/sifts";
 import { createSource } from "@sift/auth/actions/sources";
-import { headers } from "next/headers";
-import { after } from "next/server";
+import { unstable_cache, revalidateTag } from "next/cache";
 import { generateQuestionsAction } from "../api/ai/action";
+import { getRequestContext } from "@/lib/cache";
 
 export async function getLearningPathsAction() {
-  const headerStore = await headers();
-  return await getLearningPaths(headerStore);
+  const { headerStore, userId } = await getRequestContext();
+  if (!userId || userId === "anonymous") {
+    throw new Error("Unauthorized");
+  }
+  const cached = unstable_cache(
+    () => getLearningPaths(headerStore),
+    ["learning-paths-all", userId],
+    { tags: [`learning-paths-all:${userId}`] }
+  );
+  return cached();
 }
 
 export async function getLearningPathAction(id: string) {
-    const headerStore = await headers();
-    return await getLearningPath(id, headerStore);
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
+    const cached = unstable_cache(
+        () => getLearningPath(id, headerStore),
+        ["learning-path-detail", userId, id],
+        { tags: [`learning-path-detail:${userId}:${id}`] }
+    );
+    return cached();
 }
 
 export async function getLearningPathForSiftAction(siftId: string) {
-    const headerStore = await headers();
-    return await getLearningPathForSift(siftId, headerStore);
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
+    const cached = unstable_cache(
+        () => getLearningPathForSift(siftId, headerStore),
+        ["learning-path-by-sift", userId, siftId],
+        { tags: [`learning-path-by-sift:${userId}:${siftId}`] }
+    );
+    return cached();
 }
 
 export async function generateNextModuleAction(pathId: string, topic: string) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
 
     // 1. Create Source
     const sourceId = await createSource({
@@ -69,5 +96,10 @@ export async function generateNextModuleAction(pathId: string, topic: string) {
         throw new Error("Failed to generate questions"); 
     }
     
+    revalidateTag(`learning-paths-all:${userId}`, "default");
+    revalidateTag(`learning-path-detail:${userId}:${pathId}`, "default");
+    revalidateTag(`learning-path-by-sift:${userId}:${siftId}`, "default");
+    revalidateTag(`sifts-active:${userId}`, "default");
+    revalidateTag(`sift-detail:${siftId}`, "default");
     return { success: true, siftId };
 }

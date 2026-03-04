@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { 
     getSiftAction, 
@@ -86,22 +87,31 @@ export default function LearningPathPageClient({ id }: LearningPathPageClientPro
         },
     } satisfies ChartConfig;
 
-    // Initialize session
-    useEffect(() => {
-        const initSession = async () => {
-            if (isStartingSession.current) return;
-            isStartingSession.current = true;
-            
-            try {
-                const siftData = await getSiftAction(id);
-                if (!siftData) {
-                    toast.error("Sift not found");
-                    router.push("/dashboard");
-                    return;
-                }
-                setSift(siftData);
+    const { data: siftData, isLoading: isSiftLoading } = useQuery({
+        queryKey: ["sift", id],
+        queryFn: () => getSiftAction(id),
+        staleTime: Infinity,
+        gcTime: 1000 * 60 * 60 * 24 * 365,
+        retry: 2,
+        retryDelay: 1000,
+    });
 
-                // Create a new session for tracking the learning path progress
+    useEffect(() => {
+        if (siftData) {
+            setSift(siftData);
+        }
+    }, [siftData]);
+
+    useEffect(() => {
+        if (isStartingSession.current || isSiftLoading) return;
+        if (!siftData) {
+            toast.error("Sift not found");
+            router.push("/dashboard");
+            return;
+        }
+        isStartingSession.current = true;
+        const start = async () => {
+            try {
                 const newSessionId = await createSessionAction(id);
                 setSessionId(newSessionId);
                 startTime.current = Date.now();
@@ -112,9 +122,8 @@ export default function LearningPathPageClient({ id }: LearningPathPageClientPro
                 router.push(`/sift/${id}`);
             }
         };
-
-        initSession();
-    }, [id, router]);
+        start();
+    }, [id, router, siftData, isSiftLoading]);
 
     useEffect(() => {
         getLearningPathForSiftAction(id).then(setLearningPath);
@@ -332,7 +341,7 @@ export default function LearningPathPageClient({ id }: LearningPathPageClientPro
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [loading, completed, sift, viewState, showAnswer, selectedOption, handleOptionClick, handleCheckAnswer, handleNext]);
 
-    if (loading) return <div className="flex h-full items-center justify-center flex-col gap-4"><HugeiconsIcon icon={Loading03Icon} className="animate-spin h-10 w-10 text-primary" /><p className="text-muted-foreground">Loading learning path...</p></div>;
+    if (loading || isSiftLoading) return <div className="flex h-full items-center justify-center flex-col gap-4"><HugeiconsIcon icon={Loading03Icon} className="animate-spin h-10 w-10 text-primary" /><p className="text-muted-foreground">Loading learning path...</p></div>;
     
     if (!sift || !sift.sections || sift.sections.length === 0) return <div className="flex h-full items-center justify-center flex-col gap-4"><p>This Sift does not have a learning path.</p><Button onClick={() => router.push(`/sift/${id}`)}>Go Back</Button></div>;
     

@@ -5,16 +5,20 @@ import { google } from "@ai-sdk/google";
 import { addQuestions, addSections, updateSiftSummary, updateSiftTakeaways } from "@sift/auth/actions/sifts";
 import { getLearningPath, updatePathSummary } from "@sift/auth/actions/learning-paths";
 import { addFlashcards } from "@sift/auth/actions/flashcards";
-import { headers } from "next/headers";
+import { revalidateTag } from "next/cache";
 import { eventBus } from "@/lib/events";
 import { SYSTEM_PROMPT, LEARNING_PATH_SYSTEM_PROMPT } from "@/lib/ai-prompts";
+import { getRequestContext } from "@/lib/cache";
 
 // Helper function to pause execution
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function generateQuestionsAction(siftId: string, content: string, mode: 'questions' | 'learn' = 'questions', pathId?: string) {
     const MAX_ATTEMPTS = 3;
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     
     let systemPrompt = SYSTEM_PROMPT;
     if (mode === 'learn') systemPrompt = LEARNING_PATH_SYSTEM_PROMPT;
@@ -173,6 +177,14 @@ REQUIREMENTS:
             }
 
             // Success!
+            revalidateTag(`sift-detail:${siftId}`, "default");
+            revalidateTag(`sifts-active:${userId}`, "default");
+            revalidateTag(`flashcards-detail:${siftId}`, "default");
+            if (pathId) {
+                revalidateTag(`learning-paths-all:${userId}`, "default");
+                revalidateTag(`learning-path-detail:${userId}:${pathId}`, "default");
+                revalidateTag(`learning-path-by-sift:${userId}:${siftId}`, "default");
+            }
             eventBus.emit(`sift-status-${siftId}`, { status: 'completed', message: 'Sift generated successfully!' });
             return { success: true, count: questionsCount };
 

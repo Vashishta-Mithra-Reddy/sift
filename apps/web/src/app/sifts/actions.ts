@@ -1,19 +1,44 @@
 "use server";
 
 import { getSifts, getPublicSifts, getArchivedSifts } from "@sift/auth/actions/sifts";
-import { headers } from "next/headers";
+import { unstable_cache } from "next/cache";
+import { getRequestContext } from "@/lib/cache";
 
 export async function getSiftsAction() {
-  const headerStore = await headers();
-  return await getSifts(headerStore);
+  const { headerStore, userId } = await getRequestContext();
+  if (!userId || userId === "anonymous") {
+    throw new Error("Unauthorized");
+  }
+  const cached = unstable_cache(
+    () => getSifts(headerStore),
+    ["sifts-active", userId],
+    { tags: [`sifts-active:${userId}`] }
+  );
+  return cached();
 }
 
 export async function getArchivedSiftsAction() {
-  const headerStore = await headers();
-  return await getArchivedSifts(headerStore);
+  const { headerStore, userId } = await getRequestContext();
+  if (!userId || userId === "anonymous") {
+    throw new Error("Unauthorized");
+  }
+  const cached = unstable_cache(
+    () => getArchivedSifts(headerStore),
+    ["sifts-archived", userId],
+    { tags: [`sifts-archived:${userId}`] }
+  );
+  return cached();
 }
 
 export async function getPublicSiftsAction() {
-  const headerStore = await headers();
-  return await getPublicSifts(headerStore);
+  const { headerStore, userId } = await getRequestContext();
+  if (!userId || userId === "anonymous") {
+    throw new Error("Unauthorized");
+  }
+  const cached = unstable_cache(
+    () => getPublicSifts(headerStore),
+    ["sifts-public"],
+    { tags: ["sifts-public:global"] }
+  );
+  return cached();
 }

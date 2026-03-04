@@ -1,21 +1,24 @@
 "use server";
 
-import { createSource, getSources, deleteSource } from "@sift/auth/actions/sources";
-import { headers } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { createSource, deleteSource, getSources } from "@sift/auth/actions/sources";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { createSift, addQuestions, addSections, updateSiftTakeaways } from "@sift/auth/actions/sifts";
 import { addFlashcards } from "@sift/auth/actions/flashcards";
 import { createLearningPath, addSiftToPath, updatePathSummary } from "@sift/auth/actions/learning-paths";
 import { processSiftContent } from "@/lib/content-processor";
 import { generateQuestionsAction } from "@/app/api/ai/action";
 import { after } from "next/server";
+import { getRequestContext } from "@/lib/cache";
 
 export async function uploadSourceAction(formData: FormData) {
   const file = formData.get("file") as File;
   if (!file) throw new Error("No file provided");
 
   const text = await file.text(); // Basic text extraction for now
-  const headerStore = await headers();
+  const { headerStore, userId } = await getRequestContext();
+  if (!userId || userId === "anonymous") {
+    throw new Error("Unauthorized");
+  }
 
   const sourceId = await createSource({
     title: file.name,
@@ -46,11 +49,16 @@ export async function uploadSourceAction(formData: FormData) {
       }
   });
 
+  revalidateTag(`sources-all:${userId}`, "default");
+  revalidateTag(`sifts-active:${userId}`, "default");
   return { sourceId, siftId };
 }
 
 export async function createTextSourceAction(title: string, content: string) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     
     // 1. Create Source
     const sourceId = await createSource({
@@ -82,11 +90,16 @@ export async function createTextSourceAction(title: string, content: string) {
         }
     });
 
+    revalidateTag(`sources-all:${userId}`, "default");
+    revalidateTag(`sifts-active:${userId}`, "default");
     return { sourceId, siftId };
 }
 
 export async function createTopicSourceAction(topic: string) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     
     // 1. Create Source
     const sourceId = await createSource({
@@ -119,11 +132,16 @@ export async function createTopicSourceAction(topic: string) {
         }
     });
 
+    revalidateTag(`sources-all:${userId}`, "default");
+    revalidateTag(`sifts-active:${userId}`, "default");
     return { sourceId, siftId };
 }
 
 export async function createImportedSourceAction(title: string, data: any) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     
     // Handle new format: { questions: [], flashcards: [] } or old format: [questions]
     let questions = [];
@@ -175,11 +193,18 @@ export async function createImportedSourceAction(title: string, data: any) {
         await updateSiftTakeaways(siftId, validTakeaways, headerStore);
     }
 
+    revalidateTag(`sources-all:${userId}`, "default");
+    revalidateTag(`sifts-active:${userId}`, "default");
+    revalidateTag(`sift-detail:${siftId}`, "default");
+    revalidateTag(`flashcards-detail:${siftId}`, "default");
     return { sourceId, siftId };
 }
 
 export async function createImportedLearningPathAction(title: string, data: any) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
 
     // Handle new format: { summary, sections: [] } or old format: [sections]
     const sections = Array.isArray(data) ? data : (data.sections || []);
@@ -267,17 +292,38 @@ export async function createImportedLearningPathAction(title: string, data: any)
         }
     }
     
+    revalidateTag(`learning-paths-all:${userId}`, "default");
+    revalidateTag(`learning-path-detail:${userId}:${learningPath.id}`, "default");
+    revalidateTag(`learning-path-by-sift:${userId}:${siftId}`, "default");
+    revalidateTag(`sources-all:${userId}`, "default");
+    revalidateTag(`sifts-active:${userId}`, "default");
+    revalidateTag(`sift-detail:${siftId}`, "default");
+    revalidateTag(`flashcards-detail:${siftId}`, "default");
     return { sourceId, siftId, pathId: learningPath.id };
 }
 
 export async function getSourcesAction() {
-    const headerStore = await headers();
-    return await getSources(headerStore);
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
+    const cached = unstable_cache(
+        () => getSources(headerStore),
+        ["sources-all", userId],
+        { tags: [`sources-all:${userId}`] }
+    );
+    return cached();
 }
 
 export async function deleteSourceAction(id: string) {
-    const headerStore = await headers();
+    const { headerStore, userId } = await getRequestContext();
+    if (!userId || userId === "anonymous") {
+        throw new Error("Unauthorized");
+    }
     await deleteSource(id, headerStore);
     revalidatePath("/dashboard");
+    revalidateTag(`sources-all:${userId}`, "default");
+    revalidateTag(`sifts-active:${userId}`, "default");
+    revalidateTag(`sifts-archived:${userId}`, "default");
     return { success: true };
 }

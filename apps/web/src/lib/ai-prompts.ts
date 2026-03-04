@@ -35,7 +35,8 @@ Rules:
 4. Keep explanations concise but helpful.
 5. Generate 5-10 flashcards that cover key terms and definitions.
 6. Generate 3-5 key takeaways that summarize the most important points.
-7. Output ONLY the JSON object, no other text.`;
+7. Do not generate obscene, sexual, or explicit content.
+8. Output ONLY the JSON object, no other text.`;
 
 
 export const LEARNING_PATH_SYSTEM_PROMPT = `You are Sift AI, an expert teacher.
@@ -84,7 +85,8 @@ Rules:
 7. Content should be concise but sufficient to answer the questions.
 8. Generate 5-10 flashcards based on the content of the sections.
 9. Generate 5-7 key takeaways that summarize the entire module.
-10. Output ONLY the JSON object, no other text.`;
+10. Do not generate obscene, sexual, or explicit content.
+11. Output ONLY the JSON object, no other text.`;
 
 // Back Up
 // 1. Break the topic into logical steps/sections (Introduction, Key Concept 1, Key Concept 2, Advanced, etc.).

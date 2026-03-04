@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getSiftAction } from "../../actions";
 import { Button } from "@/components/ui/button";
@@ -40,23 +41,29 @@ export default function TakeawaysPageClient({ id }: TakeawaysPageClientProps) {
     const [playClick] = useSound('/audio/click.wav', { volume: 0.5 });
     const [playSuccess] = useSound('/audio/success.mp3', { volume: 0.5 });
 
+    const { data: siftData, isLoading: isSiftLoading } = useQuery({
+        queryKey: ["sift", id],
+        queryFn: () => getSiftAction(id),
+        staleTime: Infinity,
+        gcTime: 1000 * 60 * 60 * 24 * 365,
+        retry: 2,
+        retryDelay: 1000,
+    });
+
     useEffect(() => {
-        const init = async () => {
-            try {
-                const siftData = await getSiftAction(id);
-                setSift(siftData);
-                if (siftData?.takeaways) {
-                    setTakeaways(siftData.takeaways as any[]);
-                }
-            } catch (e) {
-                console.error(e);
-                toast.error("Failed to load takeaways");
-            } finally {
-                setLoading(false);
+        if (siftData) {
+            setSift(siftData);
+            if (siftData.takeaways) {
+                setTakeaways(siftData.takeaways as any[]);
             }
-        };
-        init();
-    }, [id]);
+        }
+    }, [siftData]);
+
+    useEffect(() => {
+        if (!isSiftLoading) {
+            setLoading(false);
+        }
+    }, [isSiftLoading]);
 
     const handleNext = () => {
         if (currentIndex < takeaways.length - 1) {
@@ -108,7 +115,7 @@ export default function TakeawaysPageClient({ id }: TakeawaysPageClientProps) {
         if (!isFinished) handleNext();
     }, [currentIndex, takeaways.length, isFinished]);
 
-    if (loading) return (
+    if (loading || isSiftLoading) return (
         <div className="flex h-screen w-full items-center justify-center flex-col gap-4">
             <HugeiconsIcon icon={Loading03Icon} className="animate-spin h-8 w-8 text-primary" />
             <p className="text-muted-foreground font-medium animate-pulse">Loading takeaways...</p>

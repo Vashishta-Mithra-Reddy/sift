@@ -1,9 +1,9 @@
 "use server";
 
 import { getEchoes } from "@sift/auth/actions/echoes";
-import { headers } from "next/headers";
+import { getRequestContext } from "@/lib/cache";
 
 export async function getEchoesAction() {
-  const headerStore = await headers();
-  return await getEchoes(undefined, headerStore);
+  const { headerStore } = await getRequestContext();
+  return getEchoes(undefined, headerStore);
 }

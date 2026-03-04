@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getSiftAction, completeSessionAction, batchUpdateEchoesAction, createSessionAction, saveSessionAnswersAction } from "../../actions";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -56,22 +57,31 @@ export default function SiftPlayPageClient({ id }: SiftPlayPageClientProps) {
     },
   } satisfies ChartConfig;
 
-  // Initialize session
-  useEffect(() => {
-    const initSession = async () => {
-        if (isStartingSession.current) return;
-        isStartingSession.current = true;
-        
-        try {
-            const siftData = await getSiftAction(id);
-            if (!siftData) {
-                toast.error("Sift not found");
-                router.push("/sifts");
-                return;
-            }
-            setSift(siftData);
+  const { data: siftData, isLoading: isSiftLoading, refetch: refetchSift } = useQuery({
+    queryKey: ["sift", id],
+    queryFn: () => getSiftAction(id),
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24 * 365,
+    retry: 2,
+    retryDelay: 1000,
+  });
 
-            // Create a new session
+  useEffect(() => {
+    if (siftData) {
+        setSift(siftData);
+    }
+  }, [siftData]);
+
+  useEffect(() => {
+    if (isStartingSession.current || isSiftLoading) return;
+    if (!siftData) {
+        toast.error("Sift not found");
+        router.push("/sifts");
+        return;
+    }
+    isStartingSession.current = true;
+    const start = async () => {
+        try {
             const newSessionId = await createSessionAction(id);
             setSessionId(newSessionId);
             setLoading(false);
@@ -82,9 +92,8 @@ export default function SiftPlayPageClient({ id }: SiftPlayPageClientProps) {
             router.push(`/sift/${id}`);
         }
     };
-
-    initSession();
-  }, [id, router]);
+    start();
+  }, [id, router, siftData, isSiftLoading]);
 
   // Server-Sent Events (SSE) for real-time updates
   useEffect(() => {
@@ -100,9 +109,7 @@ export default function SiftPlayPageClient({ id }: SiftPlayPageClientProps) {
           // Reload to fetch the full data with questions
           // We could also pass the data in the event, but reloading ensures full state consistency
           // or re-fetch via action
-          getSiftAction(id).then(data => {
-             if (data) setSift(data);
-          });
+          refetchSift();
           eventSource.close();
         }
       } catch (e) {
@@ -118,7 +125,7 @@ export default function SiftPlayPageClient({ id }: SiftPlayPageClientProps) {
     return () => {
       eventSource.close();
     };
-  }, [id, loading, sift]);
+  }, [id, loading, sift, refetchSift]);
 
   const handleOptionClick = useCallback((option: string) => {
     if (showAnswer) return; 
@@ -262,7 +269,7 @@ export default function SiftPlayPageClient({ id }: SiftPlayPageClientProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [loading, completed, sift, currentQuestionIndex, showAnswer, selectedOption, handleOptionClick, handleCheckAnswer, handleNext]);
 
-  if (loading) {
+  if (isSiftLoading || loading) {
     return (
         <div className="flex h-full items-center justify-center flex-col gap-4">
             <HugeiconsIcon icon={Loading03Icon} className="h-10 w-10 animate-spin text-primary" />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSiftAction, getSiftSessionsAction, deleteSessionAction, updateSiftAction, deleteSiftAction } from "../actions";
@@ -76,36 +77,22 @@ export default function SiftSessionPageClient({ id }: SiftSessionPageClientProps
         };
     });
 
-  const fetchSiftData = useCallback(async () => {
+  const { data: siftData, isLoading: isSiftLoading } = useQuery({
+    queryKey: ["sift", id],
+    queryFn: () => getSiftAction(id),
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24 * 365,
+    retry: 2,
+    retryDelay: 1000,
+  });
+
+  const loadSessions = useCallback(async () => {
     try {
-        console.log("Fetching Sift Data for ID:", id);
-        let attempts = 0;
-        
-        // Retry loop (max 3 attempts, 1s interval) to handle eventual consistency
-        while (attempts < 3) {
-            const [siftData, sessionsData] = await Promise.all([
-                getSiftAction(id),
-                getSiftSessionsAction(id)
-            ]);
-            
-            if (siftData) {
-                console.log("Sift Found:", siftData.id);
-                setSift(siftData);
-                setSessions(sessionsData);
-                return; // Success
-            }
-            
-            console.log(`Sift not found, attempt ${attempts + 1}/3`);
-            attempts++;
-            if (attempts < 3) await new Promise(r => setTimeout(r, 1000));
-        }
-        
-        console.warn("Sift not found after all retries");
-        // If we reach here, we didn't find it after retries.
-        // We do NOT redirect. We let the UI show the Not Found state.
-        
+        setLoading(true);
+        const sessionsData = await getSiftSessionsAction(id);
+        setSessions(sessionsData);
     } catch (e) {
-        console.error("Fetch Sift Data Error:", e);
+        console.error("Fetch Sessions Error:", e);
         toast.error("Failed to load session");
     } finally {
         setLoading(false);
@@ -113,9 +100,15 @@ export default function SiftSessionPageClient({ id }: SiftSessionPageClientProps
   }, [id]);
 
   useEffect(() => {
-    fetchSiftData();
+    if (siftData) {
+        setSift(siftData);
+    }
+  }, [siftData]);
+
+  useEffect(() => {
+    loadSessions();
     getLearningPathForSiftAction(id).then(setLearningPath);
-  }, [fetchSiftData]);
+  }, [loadSessions, id]);
 
   // Handle review query param redirection
   useEffect(() => {
@@ -137,7 +130,7 @@ export default function SiftSessionPageClient({ id }: SiftSessionPageClientProps
       try {
           await deleteSessionAction(sessionId);
           toast.success("Session deleted");
-          fetchSiftData();
+          loadSessions();
       } catch (e) {
           toast.error("Failed to delete session");
       } finally {
@@ -209,7 +202,7 @@ export default function SiftSessionPageClient({ id }: SiftSessionPageClientProps
     router.push(`/sift/${nextSiftId}`);
   };
 
-  if (loading) {
+  if (isSiftLoading || loading) {
     return (
         <div className="flex h-full items-center justify-center flex-col gap-4">
             <HugeiconsIcon icon={Loading03Icon} className="h-10 w-10 animate-spin text-primary" />

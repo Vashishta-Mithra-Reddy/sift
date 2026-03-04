@@ -46,10 +46,28 @@ export async function getLearningPathForSiftAction(siftId: string) {
     return cached();
 }
 
-export async function generateNextModuleAction(pathId: string, topic: string) {
+export async function generateNextModuleAction(pathId: string, topic: string, currentSiftId?: string | null) {
     const { headerStore, userId } = await getRequestContext();
     if (!userId || userId === "anonymous") {
         throw new Error("Unauthorized");
+    }
+
+    const existingPath = await getLearningPath(pathId, headerStore);
+    if (!existingPath) {
+        throw new Error("Learning path not found");
+    }
+
+    if (!currentSiftId) {
+        const lastSift = existingPath.sifts?.[existingPath.sifts.length - 1];
+        if (lastSift?.siftId) {
+            return { siftId: lastSift.siftId };
+        }
+    } else {
+        const currentIndex = existingPath.sifts?.findIndex((s: any) => s.siftId === currentSiftId) ?? -1;
+        const nextSift = currentIndex >= 0 ? existingPath.sifts?.[currentIndex + 1] : undefined;
+        if (nextSift?.siftId) {
+            return { siftId: nextSift.siftId };
+        }
     }
 
     // 1. Create Source

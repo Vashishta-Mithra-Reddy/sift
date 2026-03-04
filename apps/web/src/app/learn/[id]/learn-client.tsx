@@ -46,7 +46,8 @@ export default function LearningPathDetailsClient({ path }: LearningPathDetailsC
         if (!path) return;
         setGenerating(true);
         try {
-            const { siftId } = await generateNextModuleAction(path.id, path.goal);
+            const lastSiftId = path.sifts[path.sifts.length - 1]?.siftId ?? null;
+            const { siftId } = await generateNextModuleAction(path.id, path.goal, lastSiftId);
             toast.success("Module generated!");
             router.push(`/sift/${siftId}`);
         } catch (e) {

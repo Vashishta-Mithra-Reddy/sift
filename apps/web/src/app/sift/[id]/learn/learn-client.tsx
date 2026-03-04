@@ -296,9 +296,9 @@ export default function LearningPathPageClient({ id }: LearningPathPageClientPro
         }
         setContinuing(true);
         try {
-            const { siftId } = await generateNextModuleAction(learningPath.id, learningPath.goal);
+            const { siftId } = await generateNextModuleAction(learningPath.id, learningPath.goal, id);
             toast.success("Module generated!");
-            router.push(`/sift/${siftId}`);
+            router.push(`/sift/${siftId}/learn`);
         } catch (e) {
             toast.error("Failed to generate module");
         } finally {

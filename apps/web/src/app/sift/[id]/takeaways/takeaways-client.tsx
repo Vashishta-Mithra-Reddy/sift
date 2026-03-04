@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getSiftAction } from "../../actions";
+import { generateNextModuleAction, getLearningPathForSiftAction } from "../../../learn/actions";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { 
     ArrowLeft01Icon, 
     ArrowRight01Icon, 
+    ArrowRightIcon,
     Loading03Icon,
     Idea01Icon,
     Tick02Icon,
@@ -36,6 +38,8 @@ export default function TakeawaysPageClient({ id }: TakeawaysPageClientProps) {
     const [direction, setDirection] = useState(0); // -1 for prev, 1 for next
     const [isFinished, setIsFinished] = useState(false);
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+    const [learningPath, setLearningPath] = useState<any>(null);
+    const [continuing, setContinuing] = useState(false);
 
     // Sounds
     const [playClick] = useSound('/audio/click.wav', { volume: 0.5 });
@@ -64,6 +68,10 @@ export default function TakeawaysPageClient({ id }: TakeawaysPageClientProps) {
             setLoading(false);
         }
     }, [isSiftLoading]);
+
+    useEffect(() => {
+        getLearningPathForSiftAction(id).then(setLearningPath).catch(() => setLearningPath(null));
+    }, [id]);
 
     const handleNext = () => {
         if (currentIndex < takeaways.length - 1) {
@@ -100,6 +108,29 @@ export default function TakeawaysPageClient({ id }: TakeawaysPageClientProps) {
         setTimeout(() => setCopiedIndex(null), 2000);
     };
 
+    const handleContinueLearning = async () => {
+        if (!learningPath) {
+            router.push(`/sift/${id}`);
+            return;
+        }
+        const currentSiftIndex = learningPath.sifts.findIndex((s: any) => s.siftId === id);
+        const nextSift = learningPath.sifts[currentSiftIndex + 1];
+        if (nextSift) {
+            router.push(`/sift/${nextSift.siftId}/learn`);
+            return;
+        }
+        setContinuing(true);
+        try {
+            const { siftId } = await generateNextModuleAction(learningPath.id, learningPath.goal, id);
+            toast.success("Module generated!");
+            router.push(`/sift/${siftId}/learn`);
+        } catch (e) {
+            toast.error("Failed to generate module");
+        } finally {
+            setContinuing(false);
+        }
+    };
+
     // Keyboard Shortcuts
     useHotkeys('right', () => {
         if (!isFinished) handleNext();
@@ -130,6 +161,8 @@ export default function TakeawaysPageClient({ id }: TakeawaysPageClientProps) {
     );
 
     const progress = ((currentIndex + 1) / takeaways.length) * 100;
+    const moduleNumber = learningPath?.sifts?.find((item: any) => item.siftId === id)?.order;
+    const titlePrefix = moduleNumber !== undefined ? `Module ${moduleNumber + 1}: ` : "";
 
     return (
         <div className="text-foreground flex flex-col mx-auto md:px-4 ">
@@ -141,7 +174,7 @@ export default function TakeawaysPageClient({ id }: TakeawaysPageClientProps) {
                 </Button>
                 <div className="flex flex-col items-center transition-all duration-300">
                     <div>
-                        <h1 className="text-xl md:text-2xl text-foreground/70 font-semibold tracking-tight font-outfit line-clamp-1 transition-all duration-300">{sift.source?.title}</h1>
+                        <h1 className="text-xl md:text-2xl text-foreground/70 font-semibold tracking-tight font-outfit line-clamp-1 transition-all duration-300">{titlePrefix}{sift.source?.title}</h1>
                         {/* <p className="text-muted-foreground text-sm font-jakarta flex items-center gap-2">
                             {takeaways.length} takeaways
                         </p> */}
@@ -172,20 +205,36 @@ export default function TakeawaysPageClient({ id }: TakeawaysPageClientProps) {
                             exit={{ opacity: 0, scale: 0.9 }}
                             className="text-center aspect-[3/2] md:aspect-[16/9] space-y-6 w-full h-full bg-card border rounded-3xl p-12 flex flex-col items-center justify-center"
                         >
-                            <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-primary/5">
+                            {/* <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-primary/5">
                                 <HugeiconsIcon icon={Tick02Icon} className="w-10 h-10 text-primary" />
-                            </div>
+                            </div> */}
+                            <img src="/sift-mascot.webp" alt="Sift mascot" className="h-28 w-28 mb-0" />
                             <div className="space-y-2">
                                 <h2 className="text-2xl font-bold font-outfit">All Done!</h2>
                                 <p className="text-muted-foreground">You've reviewed all {takeaways.length} takeaways.</p>
                             </div>
-                            <div className="flex items-center justify-center gap-3 w-full">
-                                <Button onClick={handleRestart} size="lg" className="w-fit gap-2 rounded-xl h-12 text-base px-4">
+                            <div className="flex items-center justify-center gap-3 w-full pb-0 mb-3">
+                                <Button onClick={handleRestart} size="lg" variant="outline" className="w-fit gap-2 rounded-xl h-12 text-base px-4">
                                     <HugeiconsIcon icon={RepeatIcon} className="w-5 h-5" />
                                     Review Again
                                 </Button>
                                 <Button onClick={() => router.push(`/sift/${id}`)} variant="outline" size="lg" className="w-fit rounded-xl h-12 text-base px-4">
                                     Back to Sift
+                                </Button>
+                            </div>
+                            <div className="flex items-center justify-center w-full">
+                                <Button onClick={handleContinueLearning} size="lg" className="w-fit gap-2 rounded-xl h-12 text-base px-4" disabled={continuing}>
+                                    {continuing ? (
+                                        <>
+                                            <HugeiconsIcon icon={Loading03Icon} className="w-4 h-4 animate-spin" />
+                                            Generating next module...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Continue Learning
+                                            <HugeiconsIcon icon={ArrowRightIcon} className="w-4 h-4" />
+                                        </>
+                                    )}
                                 </Button>
                             </div>
                         </motion.div>

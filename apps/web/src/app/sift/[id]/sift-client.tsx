@@ -183,7 +183,7 @@ export default function SiftSessionPageClient({ id }: SiftSessionPageClientProps
     if (!learningPath) return;
     setGeneratingNext(true);
     try {
-        const { siftId } = await generateNextModuleAction(learningPath.id, learningPath.goal);
+        const { siftId } = await generateNextModuleAction(learningPath.id, learningPath.goal, id);
         toast.success("Module generated!");
         // Refresh learning path to update the button state
         // const updatedPath = await getLearningPathForSiftAction(id);

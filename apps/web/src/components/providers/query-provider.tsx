@@ -7,33 +7,40 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import localforage from "localforage";
 import { authClient } from "@/lib/auth-client";
 
-const shouldPersistQuery = (query: Query) => {
-  const key = String(query.queryKey[0] ?? "");
-  return ["sift", "flashcards", "learning-path", "learning-path-for-sift"].includes(key);
-};
+const PERSISTED_QUERY_KEYS = [
+  "sift",
+  "flashcards",
+  "learning-path",
+  "learning-path-for-sift",
+] as const;
+
+const CACHE_MAX_AGE = 1000 * 60 * 60 * 24 * 365; // 1 year
+
+const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+        retry: 2,
+      },
+    },
+  });
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = authClient.useSession();
-  const userId = session?.user?.id ?? "anonymous";
+  const userId = session?.user?.id ?? null;
+
+  const [queryClient] = useState(createQueryClient);
+
   const persister = useMemo(
     () =>
       createAsyncStoragePersister({
         storage: localforage,
-        key: `sift-query-cache:${userId}`,
+        key: `sift-query-cache:${userId ?? "anonymous"}`,
       }),
     [userId]
   );
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            refetchOnWindowFocus: false,
-            retry: 2,
-          },
-        },
-      })
-  );
+
   const previousUserId = useRef(userId);
 
   useEffect(() => {
@@ -43,13 +50,25 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
     }
   }, [queryClient, userId]);
 
+  useEffect(() => {
+    if (userId) {
+      void localforage.removeItem("sift-query-cache:anonymous");
+    }
+  }, [userId]);
+
   return (
     <PersistQueryClientProvider
       client={queryClient}
       persistOptions={{
         persister,
-        maxAge: 1000 * 60 * 60 * 24 * 365,
-        dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
+        maxAge: CACHE_MAX_AGE,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query: Query) => {
+            if (!userId) return false;
+            const key = String(query.queryKey[0] ?? "");
+            return (PERSISTED_QUERY_KEYS as readonly string[]).includes(key);
+          },
+        },
       }}
     >
       {children}

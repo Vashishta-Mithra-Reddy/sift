@@ -27,10 +27,17 @@ const createQueryClient = () =>
   });
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const userId = session?.user?.id ?? null;
 
   const [queryClient] = useState(createQueryClient);
+
+  // Latch: once auth resolves once, stays true forever.
+  // This prevents persister from ever being created with the wrong key.
+  const [authReady, setAuthReady] = useState(false);
+  useEffect(() => {
+    if (!isPending) setAuthReady(true);
+  }, [isPending]);
 
   const persister = useMemo(
     () =>
@@ -42,7 +49,6 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   );
 
   const previousUserId = useRef(userId);
-
   useEffect(() => {
     if (previousUserId.current !== userId) {
       queryClient.clear();
@@ -55,6 +61,12 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       void localforage.removeItem("sift-query-cache:anonymous");
     }
   }, [userId]);
+
+  // Hold rendering until auth has resolved at least once.
+  // This is NOT a provider swap — the tree simply doesn't exist yet,
+  // so there is no unmount/remount. The provider mounts exactly once
+  // with the correct key (either a real userId or confirmed "anonymous").
+  if (!authReady) return null;
 
   return (
     <PersistQueryClientProvider

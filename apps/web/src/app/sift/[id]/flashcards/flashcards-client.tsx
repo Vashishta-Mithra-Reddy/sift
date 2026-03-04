@@ -214,7 +214,7 @@ export default function FlashcardsPageClient({ id }: FlashcardsPageClientProps) 
                             </div> */}
                             <img src="/sift-mascot.webp" alt="Sift mascot" className="h-28 w-28 mb-0" />
                             <div className="space-y-2">
-                                <h2 className="text-2xl font-bold font-outfit">All Done!</h2>
+                                <h2 className="text-2xl font-bold font-outfit mb-2">All Done!</h2>
                                 <p className="text-muted-foreground">You've reviewed all {flashcards.length} cards.</p>
                             </div>
                             <div className="flex items-center justify-center gap-3 w-full pb-0 mb-3">

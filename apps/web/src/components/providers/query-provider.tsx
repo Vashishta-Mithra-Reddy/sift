@@ -6,6 +6,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import localforage from "localforage";
 import { authClient } from "@/lib/auth-client";
+import { LoadingState } from "../ui/loading-state";
 
 const PERSISTED_QUERY_KEYS = [
   "sift",
@@ -32,12 +33,10 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
 
   const [queryClient] = useState(createQueryClient);
 
-  // Latch: once auth resolves once, stays true forever.
-  // This prevents persister from ever being created with the wrong key.
-  const [authReady, setAuthReady] = useState(false);
-  useEffect(() => {
-    if (!isPending) setAuthReady(true);
-  }, [isPending]);
+  const authReady = useRef(false);
+  if (!isPending) {
+    authReady.current = true;
+  }
 
   const persister = useMemo(
     () =>
@@ -62,11 +61,10 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
     }
   }, [userId]);
 
-  // Hold rendering until auth has resolved at least once.
-  // This is NOT a provider swap — the tree simply doesn't exist yet,
-  // so there is no unmount/remount. The provider mounts exactly once
-  // with the correct key (either a real userId or confirmed "anonymous").
-  if (!authReady) return null;
+  if (!authReady.current) {
+    <LoadingState />
+    return null; 
+  }
 
   return (
     <PersistQueryClientProvider

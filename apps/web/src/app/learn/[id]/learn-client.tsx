@@ -112,7 +112,7 @@ export default function LearningPathDetailsClient({ path }: LearningPathDetailsC
                         key={item.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
+                        transition={{ delay: (index % 5) * 0.1 }}
                         className="relative flex flex-col md:flex-row items-start md:items-center justify-between md:justify-normal md:even:flex-row-reverse group is-active"
                     >
                         {/* Icon */}

@@ -101,7 +101,7 @@ export default function LearningPathsPageClient({ initialPaths }: LearningPathsP
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, margin: "-50px" }}
-                            transition={{ type: "spring", stiffness: 260, damping: 20, delay: (index % 12) * 0.05 }}
+                            transition={{ type: "spring", stiffness: 260, damping: 20, delay: (index % 3) * 0.05 }}
                         >
                             <Card className="group h-full flex flex-col overflow-hidden border-border/30 bg-card hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-none hover:shadow-primary/5 gap-3">
                                 <CardHeader className="flex justify-between items-center pt-0 pb-2">
@@ -131,9 +131,9 @@ export default function LearningPathsPageClient({ initialPaths }: LearningPathsP
                                         )}
                                     </div>
                                 </CardContent>
-                                <CardFooter className="pt-4 pb-6">
+                                <CardFooter className="pt-2.5 pb-2.5">
                                     <Button 
-                                        className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300" 
+                                        className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 py-[1.1rem]" 
                                         onClick={() => handleResume(path)}
                                     >
                                         Resume Path

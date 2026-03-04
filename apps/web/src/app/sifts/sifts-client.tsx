@@ -103,7 +103,7 @@ export function SiftsClient({ initialSifts, initialArchivedSifts }: SiftsClientP
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-50px" }}
-                    transition={{ type: "spring", stiffness: 260, damping: 20, delay: index * 0.05 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20, delay: (index % 3) * 0.05 }}
                 >
                     <Card className="group flex flex-col overflow-hidden border-border/30 bg-card hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-none hover:shadow-primary/5 h-full">
                         <CardHeader className="pb-3">

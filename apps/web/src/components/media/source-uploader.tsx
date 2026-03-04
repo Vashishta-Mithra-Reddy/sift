@@ -129,7 +129,7 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
   return (
     <div className={cn("space-y-4", className)}>
       <Tabs defaultValue="file" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 mb-4">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="file" className="flex items-center gap-2">
                 <HugeiconsIcon icon={Upload01Icon} className="h-4 w-4" />
                 Upload File
@@ -138,10 +138,10 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
                 <HugeiconsIcon icon={TextFontIcon} className="h-4 w-4" />
                 Paste Text
             </TabsTrigger>
-            <TabsTrigger value="topic" className="flex items-center gap-2">
+            {/* <TabsTrigger value="topic" className="flex items-center gap-2">
                 <HugeiconsIcon icon={Idea01Icon} className="h-4 w-4" />
                 Learn Topic
-            </TabsTrigger>
+            </TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="file" className="mt-0">
@@ -213,7 +213,7 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
             </div>
         </TabsContent>
 
-        <TabsContent value="topic" className="mt-0 space-y-4">
+        {/* <TabsContent value="topic" className="mt-0 space-y-4">
             <div className="space-y-4 border rounded-xl p-6 bg-card">
                 <div className="space-y-2">
                      <Input 
@@ -238,7 +238,7 @@ export function SourceUploader({ onUploadComplete, className }: SourceUploaderPr
                     </Button>
                 </div>
             </div>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );

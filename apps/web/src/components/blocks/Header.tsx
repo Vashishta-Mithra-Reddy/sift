@@ -56,15 +56,17 @@ export default function Header({ authButton }: HeaderProps) {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-          {filteredNavItems.map((item) => (
+          {filteredNavItems.map((item) => {
+             const isActive = pathname === (typeof item.href === 'string' ? item.href : item.href.pathname);
+             return (
              <Link 
                 key={item.key} 
                 href={item.href}
-                className="hover:text-primary"
+                className={`transition-colors ${isActive ? "text-blue-600/80 dark:text-blue-400/95 font-semibold" : "hover:text-primary text-muted-foreground"}`}
              >
                 {item.label}
              </Link>
-          ))}
+          )})}
           {/* <NotificationCenter /> */}
           <div className="flex items-center gap-2">
               {/* <ModeToggle /> */}

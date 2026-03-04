@@ -128,7 +128,7 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
         <div className="space-y-2 bg-background dark:bg-transparent rounded-xl mb-8">
             <h1 className="text-3xl font-bold tracking-tight">Library</h1>
             <p className="text-muted-foreground">
-                Manage your knowledge sources and start sifting.
+                Manage your knowledge sources.
             </p>
         </div>
       <motion.div 
@@ -150,7 +150,7 @@ export default function Dashboard({ session, initialSources }: DashboardProps) {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-50px" }}
-                    transition={{ type: "spring", stiffness: 260, damping: 20, delay: index * 0.05 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20, delay: (index % 3) * 0.05 }}
                     className="min-w-0"
                 >
                 <Card className="p-4 bg-background flex flex-col justify-between gap-4 group hover:border-primary/50 transition-colors overflow-hidden h-full">

@@ -69,7 +69,7 @@ export default function Footer() {
             <img src="/sift-mascot.webp" alt="Sift mascot" className="h-20 w-20" />
             <div className="flex flex-col mb-2">
               <Link href="/" className="text-4xl md:text-5xl font-bold tracking-tighter">sift.</Link>
-              <p className="text-base text-muted-foreground font-medium mt-1">Active Recall Engine 
+              <p className="text-sm md:text-base text-muted-foreground font-medium mt-1">Active Recall Engine 
                 {/* / <span className="text-foreground/30">Quiz thingy</span> */}
                 </p>
             </div>

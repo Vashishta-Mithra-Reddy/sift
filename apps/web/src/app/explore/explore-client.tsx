@@ -45,9 +45,6 @@ export default function ExplorePageClient({ initialSifts }: ExplorePageClientPro
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.05
-      }
     }
   };
 
@@ -114,8 +111,15 @@ export default function ExplorePageClient({ initialSifts }: ExplorePageClientPro
       >
         {filteredSifts.length > 0 ? (
             // Active Sifts
-            filteredSifts.map((sift) => (
-                <motion.div key={sift.id} variants={item}>
+            filteredSifts.map((sift, index) => (
+                <motion.div 
+                    key={sift.id} 
+                    variants={item}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ delay: (index % 3) * 0.05 }}
+                >
                 <Card className="group flex flex-col overflow-hidden border-border/30 bg-card hover:bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-none hover:shadow-primary/5">
                     <CardHeader className="pb-3">
                         <div className="flex items-start justify-between mb-4">

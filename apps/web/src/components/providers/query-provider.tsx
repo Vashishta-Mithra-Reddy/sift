@@ -1,15 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { QueryClient, type Query } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import localforage from "localforage";
-
-const persister = createAsyncStoragePersister({
-  storage: localforage,
-  key: "sift-query-cache",
-});
+import { authClient } from "@/lib/auth-client";
 
 const shouldPersistQuery = (query: Query) => {
   const key = String(query.queryKey[0] ?? "");
@@ -17,6 +13,16 @@ const shouldPersistQuery = (query: Query) => {
 };
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
+  const { data: session } = authClient.useSession();
+  const userId = session?.user?.id ?? "anonymous";
+  const persister = useMemo(
+    () =>
+      createAsyncStoragePersister({
+        storage: localforage,
+        key: `sift-query-cache:${userId}`,
+      }),
+    [userId]
+  );
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -28,6 +34,14 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
         },
       })
   );
+  const previousUserId = useRef(userId);
+
+  useEffect(() => {
+    if (previousUserId.current !== userId) {
+      queryClient.clear();
+      previousUserId.current = userId;
+    }
+  }, [queryClient, userId]);
 
   return (
     <PersistQueryClientProvider

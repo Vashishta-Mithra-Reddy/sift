@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "sift",
-    short_name: "sift",
+    name: "Sift",
+    short_name: "Sift",
     description: "Sift is a platform that helps you recall information more effectively. Simply put it creates quizes and helps you master the information you learn.",
     start_url: "/ai",
     display: "standalone",

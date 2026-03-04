@@ -35,7 +35,7 @@ export default function MobileBottomNav() {
               className={cn(
                 "flex flex-col items-center justify-center gap-1 min-w-[64px] transition-colors duration-200",
                 isActive 
-                  ? "text-primary" 
+                  ? "text-blue-600 dark:text-blue-400" 
                   : "text-muted-foreground hover:text-foreground"
               )}
             >

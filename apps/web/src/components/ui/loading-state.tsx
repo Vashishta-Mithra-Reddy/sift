@@ -30,7 +30,7 @@ export function Loading({ className }: LoadingStateProps) {
 
 export function LoadingState({ className }: LoadingStateProps) {
   return (
-    <div className={cn("flex h-[80vh] w-full items-center justify-center bg-background", className)}>
+    <div className={cn("flex h-[80vh] w-full items-center justify-center", className)}>
       {/* <HugeiconsIcon icon={Loading03Icon} className="h-8 w-8 animate-spin text-muted-foreground" /> */}
       <img src="/sift-mascot.webp" alt="Sift mascot" className="h-28 w-28 animate-pulse" />
     </div>

@@ -40,7 +40,8 @@
         "CLOUDFLARE_R2_TOKEN_VALUE",
         "CLOUDFLARE_R2_ACCESS_KEY_ID",
         "CLOUDFLARE_R2_SECRET_ACCESS_KEY",
-        "CLOUDFLARE_R2_ENDPOINT"
+        "CLOUDFLARE_R2_ENDPOINT",
+        "SENTRY_AUTH_TOKEN"
       ],
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],

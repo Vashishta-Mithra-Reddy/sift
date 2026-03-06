@@ -16,6 +16,7 @@
     "@hugeicons/core-free-icons": "^3.1.1",
     "@hugeicons/react": "^1.1.4",
     "@react-three/fiber": "^9.5.0",
+    "@sentry/nextjs": "^10.42.0",
     "@sift/auth": "workspace:*",
     "@sift/env": "workspace:*",
     "@tanstack/query-async-storage-persister": "^5.59.0",

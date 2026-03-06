@@ -1,6 +1,7 @@
 import { db } from "..";
 import { learningPaths, learningPathSifts } from "../schema";
-import { eq, desc, and, asc } from "drizzle-orm";
+import { sifts } from "../schema/sifts";
+import { eq, desc, and, asc, inArray } from "drizzle-orm";
 
 export async function createLearningPath(userId: string, goal: string) {
     const [path] = await db.insert(learningPaths).values({
@@ -92,4 +93,25 @@ export async function getLearningPathForSift(siftId: string) {
 
     if (!link) return null;
     return link.path;
+}
+
+export async function updateLearningPathVisibility(pathId: string, isPublic: boolean) {
+    // 1. Update Path Visibility
+    await db.update(learningPaths)
+        .set({ isPublic, updatedAt: new Date() })
+        .where(eq(learningPaths.id, pathId));
+        
+    // 2. Find all sifts in this path
+    const links = await db.select({ siftId: learningPathSifts.siftId })
+        .from(learningPathSifts)
+        .where(eq(learningPathSifts.pathId, pathId));
+        
+    const siftIds = links.map(l => l.siftId);
+    
+    // 3. Update all sifts visibility
+    if (siftIds.length > 0) {
+        await db.update(sifts)
+            .set({ isPublic, updatedAt: new Date() })
+            .where(inArray(sifts.id, siftIds));
+    }
 }

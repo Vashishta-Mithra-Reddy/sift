@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { sifts } from "./sifts";
 
@@ -10,6 +10,7 @@ export const learningPaths = pgTable("learning_paths", {
   title: text("title").notNull(), // e.g. "Mastering React"
   goal: text("goal").notNull(), // User's original prompt
   summary: text("summary"), // AI summary of progress so far
+  isPublic: boolean("is_public").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

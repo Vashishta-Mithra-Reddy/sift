@@ -97,17 +97,15 @@ export async function getSift(id: string, headers: Headers): Promise<SiftWithQue
     headers,
   });
 
-  // Allow public access, but we still need a session for some features maybe?
-  // Actually, if it's public, maybe we don't need a session?
-  // For now, let's assume user must be logged in to view even public sifts to play them (since sessions are tied to users)
-  
   if (!session?.user) {
     throw new Error("Unauthorized");
   }
 
   const sift = await dbGetSift(id);
   
-  if (sift && sift.userId !== session.user.id && !sift.isPublic) {
+  if (!sift) return undefined;
+
+  if (sift.userId !== session.user.id && !sift.isPublic) {
     throw new Error("Unauthorized");
   }
 

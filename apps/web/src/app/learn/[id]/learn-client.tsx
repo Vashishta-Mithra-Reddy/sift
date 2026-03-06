@@ -24,12 +24,13 @@ import { cn } from "@/lib/utils";
 type LearningPathDetails = Awaited<ReturnType<typeof getLearningPathAction>>;
 
 interface LearningPathDetailsClientProps {
-    path: NonNullable<LearningPathDetails>;
+    path: NonNullable<LearningPathDetails> & { isOwner?: boolean };
 }
 
 export default function LearningPathDetailsClient({ path }: LearningPathDetailsClientProps) {
     const [generating, setGenerating] = useState(false);
     const router = useRouter();
+    const isOwner = path.isOwner ?? true; // Default to true if not provided (backward compatibility)
 
     const handleContinue = () => {
         if (!path || !path.sifts || path.sifts.length === 0) {
@@ -88,19 +89,21 @@ export default function LearningPathDetailsClient({ path }: LearningPathDetailsC
                             {path.sifts.length === 0 ? "Start Learning" : "Continue Learning"}
                             <HugeiconsIcon icon={ArrowRight01Icon} className="ml-2 h-4 w-4" />
                         </Button>
-                        <Button size="lg" variant="outline" onClick={handleGenerateNext} className="w-full sm:w-auto px-6 text-base h-11 rounded-xl" disabled={generating}>
-                            {generating ? (
-                                <>
-                                    <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />
-                                    Generating...
-                                </>
-                            ) : (
-                                <>
-                                    {/* <HugeiconsIcon icon={MagicWand01Icon} className="mr-2 h-4 w-4" /> */}
-                                    Generate Next Module
-                                </>
-                            )}
-                        </Button>
+                        {isOwner && (
+                            <Button size="lg" variant="outline" onClick={handleGenerateNext} className="w-full sm:w-auto px-6 text-base h-11 rounded-xl" disabled={generating}>
+                                {generating ? (
+                                    <>
+                                        <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* <HugeiconsIcon icon={MagicWand01Icon} className="mr-2 h-4 w-4" /> */}
+                                        Generate Next Module
+                                    </>
+                                )}
+                            </Button>
+                        )}
                     </div>
                 </div>
              </div>

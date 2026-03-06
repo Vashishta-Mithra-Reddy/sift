@@ -30,7 +30,12 @@ export async function getLearningPathAction(id: string) {
         ["learning-path-detail", userId, id],
         { tags: [`learning-path-detail:${userId}:${id}`] }
     );
-    return cached();
+    const path = await cached();
+    if (!path) return null;
+    return {
+        ...path,
+        isOwner: path.userId === userId
+    };
 }
 
 export async function getLearningPathForSiftAction(siftId: string) {

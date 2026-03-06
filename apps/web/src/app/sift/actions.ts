@@ -3,6 +3,7 @@
 import { createSiftSession, updateSiftSession, addSessionAnswers, getSiftSessions, getSiftSessionDetails, deleteSiftSession, updateSift, deleteSift, getSift } from "@sift/auth/actions/sifts";
 import { updateEchoMastery, batchUpdateEchoesAction as batchUpdateEchoes } from "@sift/auth/actions/echoes";
 import { addFlashcards, getFlashcards } from "@sift/auth/actions/flashcards";
+import { getLearningPathForSift, setLearningPathVisibility } from "@sift/auth/actions/learning-paths";
 import { revalidateTag, unstable_cache } from "next/cache";
 import type { NewSift } from "@sift/auth/types";
 import { getRequestContext } from "@/lib/cache";
@@ -30,6 +31,24 @@ export async function updateSiftAction(id: string, data: Partial<NewSift>) {
     if (!userId || userId === "anonymous") {
         throw new Error("Unauthorized");
     }
+
+    if (typeof data.isPublic !== 'undefined') {
+        const path = await getLearningPathForSift(id, headerStore);
+        if (path) {
+            await setLearningPathVisibility(path.id, data.isPublic, headerStore);
+            revalidateTag(`sift-detail:${id}`, "default");
+            revalidateTag(`sifts-active:${userId}`, "default");
+            revalidateTag(`sifts-archived:${userId}`, "default");
+            revalidateTag(`sifts-public:global`, "default");
+            revalidateTag(`learning-path-detail:${userId}:${path.id}`, "default");
+            revalidateTag(`learning-paths-all:${userId}`, "default");
+            
+            // If we are only updating isPublic, we don't need to call updateSift because setLearningPathVisibility
+            // already updated all sifts in the path (including this one).
+            if (Object.keys(data).length === 1) return;
+        }
+    }
+
     await updateSift(id, data, headerStore);
     revalidateTag(`sift-detail:${id}`, "default");
     revalidateTag(`sifts-active:${userId}`, "default");

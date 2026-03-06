@@ -4,7 +4,8 @@ import {
     getLearningPath as dbGetLearningPath, 
     addSiftToPath as dbAddSiftToPath, 
     updatePathSummary as dbUpdatePathSummary,
-    getLearningPathForSift as dbGetLearningPathForSift
+    getLearningPathForSift as dbGetLearningPathForSift,
+    updateLearningPathVisibility as dbUpdateLearningPathVisibility
 } from "@sift/db/queries/learning-paths";
 import { auth } from "../index";
 
@@ -47,7 +48,7 @@ export async function getLearningPath(id: string, headers: Headers) {
 
     const path = await dbGetLearningPath(id);
 
-    if (!path || path.userId !== session.user.id) {
+    if (!path || (path.userId !== session.user.id && !path.isPublic)) {
         return null;
     }
 
@@ -65,7 +66,7 @@ export async function getLearningPathForSift(siftId: string, headers: Headers) {
 
     const path = await dbGetLearningPathForSift(siftId);
 
-    if (!path || path.userId !== session.user.id) {
+    if (!path || (path.userId !== session.user.id && !path.isPublic)) {
         return null;
     }
 
@@ -101,11 +102,28 @@ export async function updatePathSummary(pathId: string, newSummary: string, head
         throw new Error("Unauthorized");
     }
 
-    // Check ownership
     const path = await dbGetLearningPath(pathId);
     if (!path || path.userId !== session.user.id) {
         throw new Error("Unauthorized");
     }
 
     await dbUpdatePathSummary(pathId, newSummary);
+}
+
+export async function setLearningPathVisibility(pathId: string, isPublic: boolean, headers: Headers) {
+    const session = await auth.api.getSession({
+        headers,
+    });
+
+    if (!session) {
+        throw new Error("Unauthorized");
+    }
+
+    // Check ownership (only owner can change visibility)
+    const path = await dbGetLearningPath(pathId);
+    if (!path || path.userId !== session.user.id) {
+        throw new Error("Unauthorized");
+    }
+
+    await dbUpdateLearningPathVisibility(pathId, isPublic);
 }

@@ -31,6 +31,7 @@ export default function Header({ authButton }: HeaderProps) {
   }, []);
 
   if (pathname?.includes("/flashcards") || pathname?.includes("/takeaways")) return null;
+  if (pathname?.startsWith("/sift/") && (pathname?.includes("/learn") || pathname?.includes("/play"))) return null;
 
   const isAuthenticated = Boolean(session?.user);
   const filteredNavItems = NAVIGATION_ITEMS.filter((item) => {

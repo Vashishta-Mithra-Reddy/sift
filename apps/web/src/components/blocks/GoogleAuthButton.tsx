@@ -130,7 +130,7 @@ export default function GoogleAuthButton({
           
           <DropdownMenuGroup>
             <DropdownMenuItem 
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/ai")}
               className="cursor-pointer"
             >
               <HugeiconsIcon icon={DashboardCircleIcon} className="mr-2 h-4 w-4" />

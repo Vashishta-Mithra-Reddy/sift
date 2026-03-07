@@ -354,7 +354,7 @@ export default function SiftSessionPageClient({ id }: SiftSessionPageClientProps
                 {/* Learning Path Section */}
                 {learningPath && (
                     <Card className="p-6 border-primary/20 bg-background font-jakarta">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2 text-primary font-semibold">
                                     <HugeiconsIcon icon={Book01Icon} className="h-5 w-5" />

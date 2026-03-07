@@ -6,6 +6,15 @@ import { addFlashcards, getFlashcards } from "@sift/auth/actions/flashcards";
 import { revalidateTag, unstable_cache } from "next/cache";
 import type { NewSift } from "@sift/auth/types";
 import { getRequestContext } from "@/lib/cache";
+import { PostHog } from 'posthog-node'
+
+function getPostHogClient() {
+    return new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+        host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+        flushAt: 1,
+        flushInterval: 0
+    })
+}
 
 export async function getSiftAction(id: string) {
     const { headerStore, userId } = await getRequestContext();
@@ -65,6 +74,23 @@ export async function createSessionAction(siftId: string) {
         throw new Error("Unauthorized");
     }
     const sessionId = await createSiftSession(siftId, headerStore);
+    
+    // Track session creation
+    try {
+        const posthog = getPostHogClient()
+        posthog.capture({
+            distinctId: userId,
+            event: 'sift_session_started',
+            properties: {
+                siftId: siftId,
+                sessionId: sessionId
+            }
+        })
+        await posthog.shutdown()
+    } catch (e) {
+        console.error('Failed to track session start:', e)
+    }
+
     return sessionId;
 }
 
@@ -99,7 +125,28 @@ export async function completeSessionAction(id: string, score: number) {
     if (!userId || userId === "anonymous") {
         throw new Error("Unauthorized");
     }
-    await updateSiftSession(id, { status: "completed", score, completedAt: new Date() }, headerStore);
+    
+    // Track session completion
+    try {
+        const posthog = getPostHogClient()
+        posthog.capture({
+            distinctId: userId,
+            event: 'sift_session_completed',
+            properties: {
+                sessionId: id,
+                score: score
+            }
+        })
+        await posthog.shutdown()
+    } catch (e) {
+        console.error('Failed to track session completion:', e)
+    }
+
+    await updateSiftSession(id, {
+        status: "completed",
+        score,
+        completedAt: new Date()
+    }, headerStore);
 }
 
 export async function deleteSessionAction(sessionId: string) {

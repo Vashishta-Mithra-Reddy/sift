@@ -301,7 +301,7 @@ export default function SiftPlayPageClient({ id }: SiftPlayPageClientProps) {
 
   if (isSiftLoading || loading) {
     return (
-        <div className="flex h-full items-center justify-center flex-col gap-4">
+        <div className="flex h-[90vh] items-center justify-center flex-col gap-4">
             <HugeiconsIcon icon={Loading03Icon} className="h-10 w-10 animate-spin text-primary" />
             <p className="text-muted-foreground animate-pulse">Starting session...</p>
         </div>
@@ -467,7 +467,7 @@ export default function SiftPlayPageClient({ id }: SiftPlayPageClientProps) {
   return (
     <div className="max-w-7xl mx-auto flex flex-col px-2 md:px-4">
       {/* Header */}
-      <div className="mb-2 space-y-4 bg-background dark:bg-transparent rounded-xl px-4 py-3 border border-border/0">
+      <div className="mb-2 space-y-4 bg-background dark:bg-transparent rounded-xl px-4 pt-0 pb-2 md:py-3 border border-border/0">
         <div className="flex items-center justify-between text-sm">
             <span className="font-medium text-muted-foreground truncate max-w-[150px] md:max-w-md" title={sift.source?.title}>
                 {sift.source?.title}

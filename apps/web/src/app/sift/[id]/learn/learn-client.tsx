@@ -106,7 +106,7 @@ export default function LearningPathPageClient({ id }: LearningPathPageClientPro
         if (isStartingSession.current || isSiftLoading) return;
         if (!siftData) {
             toast.error("Sift not found");
-            router.push("/dashboard");
+            router.push("/ai");
             return;
         }
         isStartingSession.current = true;
@@ -341,7 +341,7 @@ export default function LearningPathPageClient({ id }: LearningPathPageClientPro
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [loading, completed, sift, viewState, showAnswer, selectedOption, handleOptionClick, handleCheckAnswer, handleNext]);
 
-    if (loading || isSiftLoading) return <div className="flex h-full items-center justify-center flex-col gap-4"><HugeiconsIcon icon={Loading03Icon} className="animate-spin h-10 w-10 text-primary" /><p className="text-muted-foreground">Loading learning path...</p></div>;
+    if (loading || isSiftLoading) return <div className="flex h-[90vh] items-center justify-center flex-col gap-4"><HugeiconsIcon icon={Loading03Icon} className="animate-spin h-10 w-10 text-primary" /><p className="text-muted-foreground">Loading learning path...</p></div>;
     
     if (!sift || !sift.sections || sift.sections.length === 0) return <div className="flex h-full items-center justify-center flex-col gap-4"><p>This Sift does not have a learning path.</p><Button onClick={() => router.push(`/sift/${id}`)}>Go Back</Button></div>;
     
@@ -498,7 +498,7 @@ export default function LearningPathPageClient({ id }: LearningPathPageClientPro
     return (
         <div className="mx-auto md:px-4 space-y-6 flex flex-col font-jakarta">
             {/* Header */}
-            <div className="mb-2 space-y-4 bg-background dark:bg-transparent rounded-xl px-4 py-3 border border-border/0">
+            <div className="mb-2 space-y-4 bg-background dark:bg-transparent rounded-xl px-4 md:py-3 border border-border/0">
                 <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-3">
                         <Button 
@@ -540,7 +540,7 @@ export default function LearningPathPageClient({ id }: LearningPathPageClientPro
                                 <h2 className="text-3xl font-bold text-primary tracking-tight">{section.title}</h2>
                             </div>
                             <div className="prose dark:prose-invert max-w-none">
-                                <Streamdown className="text-lg" mode="static">{section.content}</Streamdown>
+                                <Streamdown className="text-base md:text-lg" mode="static">{section.content}</Streamdown>
                             </div>
                             <div className="flex justify-end pt-6 border-none border-border/50">
                                 <Button onClick={handleNext} className="gap-2 text-base h-12 px-8 rounded-xl shadow-none">
@@ -562,11 +562,15 @@ export default function LearningPathPageClient({ id }: LearningPathPageClientPro
                         {/* Quiz Card from Play Route */}
                         <Card className="p-4 md:p-8 md:pb-8 min-h-[400px] flex flex-col justify-between border-border/0 ring-0 bg-card/50 backdrop-blur-sm shadow-none">
                             <div className="space-y-6 md:space-y-8">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0">
+                                    <span className="block md:hidden text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full whitespace-nowrap">
+                                    {/* <span className="block md:hidden self-end text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full whitespace-nowrap"></span> */}
+                                        Question {currentQuestionIndex + 1}/{section.questions.length}
+                                    </span>
                                     <h2 className="text-xl md:text-3xl font-bold leading-tight tracking-tight break-words">
                                         {currentQuestion?.question}
                                     </h2>
-                                    <span className="text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full whitespace-nowrap ml-4">
+                                    <span className="hidden md:block text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full whitespace-nowrap ml-4">
                                         Question {currentQuestionIndex + 1}/{section.questions.length}
                                     </span>
                                 </div>
